@@ -2,6 +2,7 @@ package com.makeappssimple.abhimanyu.stackoverflowanswers.android
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
@@ -9,8 +10,10 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,28 +27,19 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material.TextField
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,21 +53,29 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
+import androidx.compose.ui.graphics.Color.Companion.Gray
+import androidx.compose.ui.graphics.Color.Companion.Green
+import androidx.compose.ui.graphics.Color.Companion.LightGray
+import androidx.compose.ui.graphics.Color.Companion.Red
+import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -95,9 +97,496 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     color = MaterialTheme.colors.background,
                 ) {
-                    CustomRadioGroup()
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        DisableMultiSelect()
+                    }
                 }
             }
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/69902784/state-update-from-pointerinput-not-working?noredirect=1#comment123567201_69902784v
+@Composable
+fun PointerInput() {
+    val (pressedItem, setPressedItem) = remember {
+        mutableStateOf(-1)
+    }
+
+    Log.e("Test", "$pressedItem")
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(LightGray)
+            .pointerInput("key") {
+                detectTapGestures(
+                    onPress = {
+                        Log.e("Test", "onPress")
+                        setPressedItem(1) // Not working
+                    },
+                    onTap = {
+                        Log.e("Test", "onTap")
+                        setPressedItem(2) // Not working
+                    },
+                    onDoubleTap = {
+                        Log.e("Test", "onDoubleTap")
+                        setPressedItem(3) // Not working
+                    },
+                    onLongPress = {
+                        Log.e("Test", "onLongPress")
+                        setPressedItem(4) // Not working
+                    },
+                )
+            }
+    ) {
+        Text(
+            text = "$pressedItem",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/69901608/how-to-disable-multi-item-select-in-jetpack-compose-list-out-of-the-box-debounc
+@Composable
+fun DisableMultiSelect() {
+    val (pressedItem, setPressedItem) = remember {
+        mutableStateOf(-1)
+    }
+
+    Column(
+        modifier = Modifier
+            .background(White)
+            .fillMaxSize(),
+    ) {
+        val data = Array(10) { it }
+
+        data.forEachIndexed { index, _ ->
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(LightGray)
+                    .pointerInput("key", pressedItem) {
+                        detectTapGestures(
+                            onPress = {
+                                Log.e("Test", "onPress")
+                                Log.e("Test", "pressedItem: $pressedItem")
+                                if (pressedItem == -1) {
+                                    setPressedItem(index)
+                                    Log.e("Test", "index: $index")
+                                }
+                            },
+                            onTap = {
+                                Log.e("Test", "onTap")
+                                Log.e("Test", "pressedItem: $pressedItem")
+                                Log.e("Test", "index: $index")
+                                if (pressedItem == index) {
+                                    // Click handler
+                                    Log.e("Test", "Clicked item: $index")
+
+                                    setPressedItem(-1)
+                                }
+                            },
+                            onDoubleTap = {
+                                Log.e("Test", "onDoubleTap")
+                                Log.e("Test", "pressedItem: $pressedItem")
+                            },
+                            onLongPress = {
+                                Log.e("Test", "onLongPress")
+                                Log.e("Test", "pressedItem: $pressedItem")
+                            },
+                        )
+                    }
+            ) {
+                Text(
+                    text = "$pressedItem",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/69901020/set-height-to-row-in-jetpack-compose-equivalent-to-wrap-content-in-xml
+@Composable
+fun RowHeight() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 5.dp),
+    ) {
+        Button(
+            {},
+            Modifier
+                .weight(1f)
+                .padding(16.dp),
+        ) {
+            Text(text = "Button 1")
+        }
+        Button(
+            {},
+            Modifier
+                .weight(1f)
+                .padding(16.dp),
+        ) {
+            Text(text = "Button 2")
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/69901050/align-item-in-box-jetpack-compose
+@Composable
+fun ImageWithCloseButton() {
+    Box(
+        modifier = Modifier
+            .background(LightGray)
+            .padding(16.dp)
+            .size(88.dp),
+    ) {
+        Image(
+            painter = painterResource(
+                id = R.drawable.ic_launcher_foreground,
+            ),
+            contentDescription = "",
+            modifier = Modifier
+                .align(Alignment.Center)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Black)
+                .size(80.dp),
+            contentScale = ContentScale.Crop,
+        )
+        IconButton(
+            onClick = {},
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(White)
+                .align(Alignment.TopEnd)
+                .size(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Close,
+                contentDescription = "",
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/69867249/does-remember-only-work-with-mutablestate-variables
+@Composable
+fun RememberDemo() {
+    var count by remember {
+        mutableStateOf(0)
+    }
+
+    var fireCount by remember {
+        mutableStateOf(0)
+    }
+
+    var fired = remember {
+        false
+    }
+    if (!fired) {
+        fireCount++
+        fired = true
+    }
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Text(
+            text = "$count , $fireCount",
+        )
+        TextButton(
+            onClick = {
+                count++
+            },
+            modifier = Modifier.width(160.dp),
+        ) {
+            Text(text = "Increment")
+        }
+    }
+}
+
+
+// https://stackoverflow.com/questions/69862078/how-change-outlinetextfield-border-width-in-android-jetpack-compose
+@Composable
+fun TextFieldOutlineWidth() {
+    OutlinedTextField(
+        value = "",
+        onValueChange = { },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(all = 16.dp),
+        label = { Text(text = "Label") },
+        // shape = RoundedCornerShape(12.dp),
+    )
+}
+
+// https://stackoverflow.com/questions/69854608/how-to-put-3-texts-in-a-row-so-that-everything-is-visible
+@Composable
+fun RowExample() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = "Label",
+            color = Red,
+            style = typography.h5,
+            modifier = Modifier.padding(8.dp),
+        )
+        Text(
+            text = "If text is too long, wrap it",
+            style = typography.h5,
+            modifier = Modifier
+                .weight(1f)
+                .padding(8.dp),
+        )
+        Text(
+            text = "(2)",
+            color = Green,
+            style = typography.h5,
+            modifier = Modifier.padding(8.dp),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/69844103/how-to-remove-keyboard-flicker-on-switch-textfields
+@Composable
+fun KeyboardFlicker() {
+    LazyColumn {
+        items(20) {
+            Row(modifier = Modifier.padding(vertical = 4.dp)) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .border(1.dp, Gray, RoundedCornerShape(4.dp))
+                        .padding(vertical = 4.dp)
+                ) {
+                    BasicTextField(
+                        value = "",
+                        onValueChange = { },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                        ),
+                    )
+                    Text(
+                        text = "₹ 0",
+                        modifier = Modifier.alpha(0.5f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/69843624/how-do-i-show-only-the-last-3-lines-of-text-in-jetpack-compose
+@Composable
+fun LastText() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = "This is a very long text 1.This is a very long text 2.This is a very long text 3.This is a very long text 4.This is a very long text 5.This is a very long text 6.This is a very long text 7.This is a very long text 8.This is a very long text 9.",
+            maxLines = 3,
+            modifier = Modifier
+                .align(Alignment.Bottom)
+                .padding(16.dp),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/69842871/how-to-remove-border-of-card-view-with-jetpack-compose
+@Composable
+fun CardBorder() {
+    Card(
+        elevation = 0.dp,
+        modifier = Modifier
+            .height(
+                height = 120.dp,
+            )
+            .padding(
+                all = 8.dp,
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {},
+        ) {
+            Text(
+                modifier = Modifier
+                    .weight(
+                        weight = 1f,
+                    )
+                    .padding(
+                        all = 8.dp,
+                    )
+                    .wrapContentWidth(
+                        align = Alignment.Start,
+                    ),
+                text = "Submit",
+                style = typography.h4,
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/69841065/jetpack-compose-about-preview-widthdp-and-heightdp
+@Composable
+fun NewDefaultPreview() {
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .background(Color.Red),
+    )
+}
+
+// https://stackoverflow.com/questions/69840755/how-to-center-elements-in-row-jetpack-compose#69840755
+@Composable
+fun BaseTextField(
+    modifier: Modifier = Modifier,
+    maxLines: Int = 1,
+    enabled: Boolean = true,
+    textColor: Color = Black,
+    value: String,
+    placeholderText: String,
+    onValueChange: (String) -> Unit,
+) {
+    TextField(
+        modifier = modifier.padding(horizontal = 0.dp, vertical = 0.dp),
+        value = value,
+        onValueChange = onValueChange,
+        maxLines = maxLines,
+        enabled = enabled,
+        placeholder = { Text(text = placeholderText) },
+        colors = TextFieldDefaults.textFieldColors(
+            textColor = textColor,
+            focusedIndicatorColor = Transparent,
+            disabledIndicatorColor = Transparent,
+            unfocusedIndicatorColor = Transparent,
+            backgroundColor = Transparent,
+        )
+    )
+}
+
+@Composable
+fun PhoneNumberTextField(
+    modifier: Modifier = Modifier,
+    maxLines: Int = 1,
+    enabled: Boolean = true,
+    value: String = "123",
+    numberPrefix: String = "+212",
+    onValueChange: (String) -> Unit = {},
+    onPrefixClick: () -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.Red),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TextButton(
+            modifier = modifier.padding(17.dp),
+            // numberPrefix = numberPrefix,
+            onClick = onPrefixClick
+        ) {
+            Text(text = numberPrefix)
+        }
+        Box(
+            Modifier
+                .background(Gray)
+                .height(20.dp)
+                .width(1.dp)
+                .padding(start = 3.dp, end = 14.dp)
+        )
+        BaseTextField(
+            enabled = enabled,
+            maxLines = maxLines,
+            value = value,
+            onValueChange = onValueChange,
+            placeholderText = "Hint"
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/69813880/always-display-placeholder-and-rtl-input-in-textfield-with-jetpack-compose?noredirect=1#comment123406417_69813880
+@Composable
+fun FixedPlaceholder() {
+    var name by remember { mutableStateOf("") }
+    Box {
+        OutlinedTextField(
+            shape = MaterialTheme.shapes.medium,
+            value = name,
+            onValueChange = {
+                name = it
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                textAlign = TextAlign.End,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 8.dp,
+                ),
+        )
+        Text(
+            text = "to",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = 32.dp,
+                    end = 32.dp,
+                    top = 24.dp,
+                    bottom = 8.dp
+                ),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/69813731/custom-toast-in-jetpack-compose/69814172#69814172
+@Composable
+fun CustomToast() {
+
+    // TL:DR - Custom toasts are deprecated
+
+    val context = LocalContext.current
+    val toast = Toast.makeText(
+        context,
+        "Showing toast....",
+        Toast.LENGTH_LONG
+    )
+
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(
+            onClick = {
+                toast.show()
+            },
+        ) {
+            Text(text = "Show Toast")
         }
     }
 }
@@ -873,13 +1362,5 @@ fun TextInput() {
                     vertical = 8.dp,
                 ),
         )
-    }
-}
-
-@Preview()
-@Composable
-fun DefaultPreview() {
-    StackOverflowAnswersTheme {
-        TextInput()
     }
 }
