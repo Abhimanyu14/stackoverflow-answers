@@ -1,19 +1,32 @@
 package com.makeappssimple.abhimanyu.stackoverflowanswers.android
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.GestureCancellationException
+import androidx.compose.foundation.gestures.PressGestureScope
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +40,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,17 +52,20 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -56,6 +73,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -68,22 +88,37 @@ import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.PointerInputScope
+import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.input.pointer.consumeDownChange
+import androidx.compose.ui.input.pointer.isOutOfBounds
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChangeConsumed
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.util.fastAll
+import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.material.button.MaterialButton
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
@@ -101,10 +136,561 @@ class MainActivity : ComponentActivity() {
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        DisableMultiSelect()
+                        TextInBorder()
                     }
                 }
             }
+        }
+    }
+
+    //    override fun dispatchTouchEvent(motionEvent: MotionEvent?): Boolean {
+    //        return motionEvent?.pointerCount == 1 && super.dispatchTouchEvent(motionEvent)
+    //    }
+}
+
+@Composable
+fun TextInBorder() {
+
+}
+
+
+// https://stackoverflow.com/questions/70015237/divider-is-not-showing-in-the-custom-jetpack-compose-textfield#70015237
+@Composable
+fun EditProfileScreen() {
+
+    val disableButtonState = remember {
+        mutableStateOf(false)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 24.dp, end = 24.dp, top = 32.5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            /*CountryCodeAndMobileNumber(
+                countryCodeList = listOf("+98"),
+                clientInfo,
+                disableButtonState,
+                viewModel
+            )*/
+
+            Spacer(modifier = Modifier.size(16.dp))
+
+            InputTextField(
+                modifier = Modifier.fillMaxWidth(),
+                textFieldValue = TextFieldValue("sasasasas@gmail.com"),
+                labelText = "Email Address",
+                withBorderModifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        shape = MaterialTheme.shapes.small,
+                        color = LightGray,
+                    )
+                    .padding(4.dp),
+                textStyle = MaterialTheme.typography.caption,
+                dividerColor = LightGray, // AppColor.neutralColor.SILVER_CHALICE,
+                spacer = 8.dp,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            ) {
+
+            }
+        }
+    }
+}
+
+@Composable
+private fun CountryCodeAndMobileNumber(
+    countryCodeList: List<String>,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+    ) {
+
+        /*CountryCodeDropDown(
+            list = countryCodeList,
+            label = "Country",
+            // dividerColor = AppColor.neutralColor.SILVER_CHALICE,
+            enabled = false
+        )*/
+        Spacer(modifier = Modifier.size(4.dp))
+        InputTextField(
+            textFieldValue = TextFieldValue("111111"),
+            labelText = "Mobile Number",
+            withBorderModifier = Modifier
+                .wrapContentWidth()
+                .border(
+                    width = 1.dp,
+                    shape = MaterialTheme.shapes.small,
+                    color = LightGray,
+                    // shape = AppShapes.small,
+                    // color = AppColor.brandColor.BLUE_DE_FRANCE
+                )
+                .padding(4.dp),
+            enabled = false,
+            textStyle = MaterialTheme.typography.caption,
+            dividerColor = LightGray,
+            // textStyle = AppFont.PoppinsTypography.caption,
+            // dividerColor = AppColor.neutralColor.SILVER_CHALICE,
+            spacer = 8.dp,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+        ) {
+
+        }
+    }
+}
+
+
+@Composable
+fun InputTextField(
+    modifier: Modifier = Modifier,
+    textFieldValue: TextFieldValue = TextFieldValue(""),
+    labelText: String,
+    withBorderModifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    dividerColor: Color,
+    dividerThickness: Dp = 0.5.dp,
+    spacer: Dp,
+    textStyle: TextStyle,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+    isDropDown: Boolean = false,
+    valueChange: (String) -> Unit,
+) {
+    var value by remember { mutableStateOf(textFieldValue) }
+    //This is used if we want to use it in DropDown
+    if (textFieldValue.text.isNotEmpty() && isDropDown)
+        value = textFieldValue
+    ///////////////////////////////////////////
+    val dividerState = remember {
+        mutableStateOf(true)
+    }
+
+    BasicTextField(
+        value = value,
+        onValueChange = {
+            value = it
+            valueChange.invoke(it.text)
+        },
+        modifier = Modifier
+            .onFocusChanged {
+                dividerState.value = !it.isFocused
+            },
+        decorationBox = { innerTextField ->
+
+            val mainModifier = if (!dividerState.value) {
+                withBorderModifier
+
+            } else {
+                modifier
+            }
+
+            BorderColumnState(
+                mainModifier,
+                labelText,
+                textStyle,
+                spacer,
+                innerTextField,
+                dividerState,
+                dividerThickness,
+                dividerColor
+            )
+        }, keyboardOptions = keyboardOptions, enabled = enabled
+    )
+}
+
+@Composable
+private fun BorderColumnState(
+    modifier: Modifier,
+    labelText: String,
+    textStyle: TextStyle,
+    spacer: Dp,
+    innerTextField: @Composable () -> Unit,
+    dividerState: MutableState<Boolean>,
+    dividerThickness: Dp,
+    dividerColor: Color,
+) {
+    Column(
+        modifier = modifier.wrapContentHeight(),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(text = labelText, style = textStyle)
+        Spacer(modifier = Modifier.size(spacer))
+        innerTextField()
+        if (dividerState.value) {
+            Spacer(
+                modifier = modifier
+                    .size(dividerThickness)
+                    .background(dividerColor)
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/70015530/unable-to-focus-anything
+@Composable
+fun FocusableText() {
+    val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+    var color by remember { mutableStateOf(White) }
+
+    LaunchedEffect(scope) {
+        focusRequester.requestFocus()
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .background(color)
+                .onFocusChanged {
+                    color = if (it.hasFocus || it.isFocused) {
+                        LightGray
+                    } else {
+                        White
+                    }
+                }
+                .focusRequester(focusRequester)
+                .focusable(),
+        )
+    }
+}
+
+
+// https://stackoverflow.com/questions/70009088/sliding-an-item-next-to-the-expanding-animation
+@ExperimentalAnimationApi
+@Composable
+fun ExpandableSearchbar() {
+    var text by remember {
+        mutableStateOf("")
+    }
+    var isSearchEnabled by remember {
+        mutableStateOf(false)
+    }
+    val slow = 700
+    val fast = 300
+    /*var width by remember {
+        mutableStateOf(0)
+    }
+    val offset by animateOffsetAsState(
+        if (isSearchEnabled) {
+            Offset(width.toFloat(), 0F)
+        } else {
+            Offset(0F, 0F)
+        }
+    )*/
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFE2E2E2))
+            .height(120.dp),
+    ) {
+        IconButton(
+            onClick = {
+                isSearchEnabled = !isSearchEnabled
+            },
+            // modifier = Modifier.offset(offset.x.dp, offset.y.dp)
+        ) {
+            Icon(Icons.Default.Search, "search")
+        }
+
+        AnimatedVisibility(
+            visible = isSearchEnabled,
+            enter = fadeIn(
+                animationSpec = tween(durationMillis = fast)
+            ) + expandHorizontally(
+                expandFrom = Alignment.End,
+                animationSpec = tween(
+                    durationMillis = slow,
+                    easing = FastOutLinearInEasing,
+                )
+            )
+            /*
+            expandHorizontally(
+                expandFrom = Alignment.End,
+                animationSpec = tween(
+                    durationMillis = slow,
+                    easing = FastOutLinearInEasing,
+                )
+            )
+            slideInHorizontally(
+                initialOffsetX = {
+                    width = it
+                    it / 2
+                },
+                animationSpec = tween(durationMillis = slow)
+            )
+            */,
+            exit = fadeOut(
+                animationSpec = tween(
+                    durationMillis = slow,
+                    easing = FastOutLinearInEasing,
+                )
+            ) + shrinkHorizontally(
+                shrinkTowards = Alignment.End,
+                animationSpec = tween(
+                    durationMillis = slow,
+                    easing = FastOutLinearInEasing,
+                )
+            )
+        ) {
+            TextField(
+                modifier = Modifier.padding(end = 16.dp),
+                shape = RoundedCornerShape(10.dp),
+                value = text,
+                onValueChange = {
+                    text = it
+                },
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/69941390/how-to-draw-a-border-around-multiline-text-in-compose
+@Composable
+fun TextBorder() {
+    Column {
+        Text("Box around text",
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .border(width = 2.dp, color = Red)
+                .background(Color.DarkGray))
+        Text("Box around text with a very very very very longlonglonglongword",
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .border(width = 2.dp, color = Red)
+                .background(Color.DarkGray)
+        )
+    }
+}
+
+// Not posted as a question
+@Composable
+fun PreventSwitchConsumingClick() {
+    var checked by remember {
+        mutableStateOf(true)
+    }
+    val onCheckedChange = {
+        checked = !checked
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onCheckedChange()
+            }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text("Switch with label")
+        Switch(
+            checked = checked,
+            enabled = true,
+            onCheckedChange = null,
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/69946779/disabled-switch-consumes-click-events-in-jetpack-compose
+@Composable
+fun DisabledSwitch() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {}
+            //            .pointerInput(Unit) {
+            //                detectTapAndPressUnconsumed(
+            //                    onTap = {
+            //                        Log.e("Test", "tap")
+            //                    },
+            //                )
+            //            }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text("Disabled Switch")
+        Switch(
+            checked = false,
+            enabled = false,
+            onCheckedChange = {},
+        )
+    }
+}
+
+val NoPressGesture: suspend PressGestureScope.(Offset) -> Unit = { }
+
+class PressGestureScopeImpl(
+    density: Density,
+) : PressGestureScope, Density by density {
+    private var isReleased = false
+    private var isCanceled = false
+    private val mutex = Mutex(locked = false)
+
+    /**
+     * Called when a gesture has been canceled.
+     */
+    fun cancel() {
+        isCanceled = true
+        mutex.unlock()
+    }
+
+    /**
+     * Called when all pointers are up.
+     */
+    fun release() {
+        isReleased = true
+        mutex.unlock()
+    }
+
+    /**
+     * Called when a new gesture has started.
+     */
+    fun reset() {
+        mutex.tryLock() // If tryAwaitRelease wasn't called, this will be unlocked.
+        isReleased = false
+        isCanceled = false
+    }
+
+    override suspend fun awaitRelease() {
+        if (!tryAwaitRelease()) {
+            throw GestureCancellationException("The press gesture was canceled.")
+        }
+    }
+
+    override suspend fun tryAwaitRelease(): Boolean {
+        if (!isReleased && !isCanceled) {
+            mutex.lock()
+        }
+        return isReleased
+    }
+}
+
+suspend fun PointerInputScope.detectTapAndPressUnconsumed(
+    onPress: suspend PressGestureScope.(Offset) -> Unit = NoPressGesture,
+    onTap: ((Offset) -> Unit)? = null,
+) {
+    val pressScope = PressGestureScopeImpl(this)
+    forEachGesture {
+        coroutineScope {
+            pressScope.reset()
+            awaitPointerEventScope {
+
+                val down = awaitFirstDown(requireUnconsumed = false).also { it.consumeDownChange() }
+
+                if (onPress !== NoPressGesture) {
+                    launch { pressScope.onPress(down.position) }
+                }
+
+                val up = waitForUpOrCancellationInitial()
+                if (up == null) {
+                    pressScope.cancel() // tap-up was canceled
+                } else {
+                    pressScope.release()
+                    onTap?.invoke(up.position)
+                }
+            }
+        }
+    }
+}
+
+suspend fun AwaitPointerEventScope.waitForUpOrCancellationInitial(): PointerInputChange? {
+    while (true) {
+        val event = awaitPointerEvent(PointerEventPass.Initial)
+        if (event.changes.fastAll { it.changedToUp() }) {
+            // All pointers are up
+            return event.changes[0]
+        }
+
+        if (event.changes.fastAny { it.consumed.downChange || it.isOutOfBounds(size) }) {
+            return null // Canceled
+        }
+
+        // Check for cancel by position consumption. We can look on the Final pass of the
+        // existing pointer event because it comes after the Main pass we checked above.
+        val consumeCheck = awaitPointerEvent(PointerEventPass.Final)
+        if (consumeCheck.changes.fastAny { it.positionChangeConsumed() }) {
+            return null
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/69941628/disabled-but-clickable-switch-in-jetpack-compose
+@Composable
+fun DisabledClickableSwitch(
+    paidUser: Boolean = true,
+) {
+    var checked by remember {
+        mutableStateOf(false)
+    }
+    val onCheckedChange = {
+        if (paidUser) {
+            checked = !checked
+        } else {
+            // Navigate to the require screen to show info about the paid feature here
+            Log.e("Test", "Navigate from here")
+        }
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onCheckedChange()
+            }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text("Enable Paid Feature")
+        Switch(
+            checked = checked,
+            enabled = paidUser,
+            onCheckedChange = null,
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/69932411/correct-way-to-handle-mutable-state-of-list-of-data-in-jetpack-compose
+@Composable
+fun ListState() {
+    Log.e("TAG", "Recomposition")
+    var list by rememberSaveable {
+        mutableStateOf(mutableListOf<Int>())
+    }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            items(list) {
+                Text(
+                    text = "Test",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                )
+            }
+        }
+        Button(
+            onClick = {
+                list.add(0)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            Text(text = "Add")
         }
     }
 }
@@ -179,43 +765,46 @@ fun DisableMultiSelect() {
                     .padding(8.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(LightGray)
-                    .pointerInput("key", pressedItem) {
-                        detectTapGestures(
-                            onPress = {
-                                Log.e("Test", "onPress")
-                                Log.e("Test", "pressedItem: $pressedItem")
-                                if (pressedItem == -1) {
-                                    setPressedItem(index)
-                                    Log.e("Test", "index: $index")
-                                }
-                            },
-                            onTap = {
-                                Log.e("Test", "onTap")
-                                Log.e("Test", "pressedItem: $pressedItem")
-                                Log.e("Test", "index: $index")
-                                if (pressedItem == index) {
-                                    // Click handler
-                                    Log.e("Test", "Clicked item: $index")
-
-                                    setPressedItem(-1)
-                                }
-                            },
-                            onDoubleTap = {
-                                Log.e("Test", "onDoubleTap")
-                                Log.e("Test", "pressedItem: $pressedItem")
-                            },
-                            onLongPress = {
-                                Log.e("Test", "onLongPress")
-                                Log.e("Test", "pressedItem: $pressedItem")
-                            },
-                        )
+                    .clickable {
+                        Log.e("Test", "Clicked $index")
                     }
+                //                    .pointerInput("key", pressedItem) {
+                //                        detectTapGestures(
+                //                            onPress = {
+                //                                Log.e("Test", "onPress")
+                //                                Log.e("Test", "pressedItem: $pressedItem")
+                //                                if (pressedItem == -1) {
+                //                                    setPressedItem(index)
+                //                                    Log.e("Test", "index: $index")
+                //                                }
+                //                            },
+                //                            onTap = {
+                //                                Log.e("Test", "onTap")
+                //                                Log.e("Test", "pressedItem: $pressedItem")
+                //                                Log.e("Test", "index: $index")
+                //                                if (pressedItem == index) {
+                //                                    // Click handler
+                //                                    Log.e("Test", "Clicked item: $index")
+                //
+                //                                    setPressedItem(-1)
+                //                                }
+                //                            },
+                //                            onDoubleTap = {
+                //                                Log.e("Test", "onDoubleTap")
+                //                                Log.e("Test", "pressedItem: $pressedItem")
+                //                            },
+                //                            onLongPress = {
+                //                                Log.e("Test", "onLongPress")
+                //                                Log.e("Test", "pressedItem: $pressedItem")
+                //                            },
+                //                        )
+                //                    }
             ) {
-                Text(
-                    text = "$pressedItem",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                //                Text(
+                //                    text = "$pressedItem",
+                //                    textAlign = TextAlign.Center,
+                //                    modifier = Modifier.fillMaxWidth(),
+                //                )
             }
         }
     }
@@ -453,7 +1042,7 @@ fun NewDefaultPreview() {
     Box(
         modifier = Modifier
             .size(100.dp)
-            .background(Color.Red),
+            .background(Red),
     )
 }
 
@@ -499,7 +1088,7 @@ fun PhoneNumberTextField(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(Color.Red),
+            .background(Red),
         verticalAlignment = Alignment.CenterVertically
     ) {
         TextButton(
@@ -984,7 +1573,7 @@ fun GradientColor() {
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.Red,
+                        Red,
                         Color.White,
                     ),
                     start = Offset(0f, 0f),
@@ -1060,7 +1649,7 @@ fun OneLayout() {
         Box(
             modifier = Modifier
                 .size(width = 48.dp, height = 48.dp)
-                .background(Color.Red),
+                .background(Red),
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(
@@ -1079,7 +1668,7 @@ fun TwoLayout() {
         Box(
             modifier = Modifier
                 .size(width = 48.dp, height = 48.dp)
-                .background(Color.Red)
+                .background(Red)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(

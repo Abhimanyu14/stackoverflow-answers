@@ -127,6 +127,8 @@ dependencies {
     // Jetpack compose when adding to an app using AppCompat theme
     implementation "com.google.accompanist:accompanist-appcompat-theme:$rootProject.accompanistVersion"
 
+    implementation "org.jetbrains.compose.ui:ui-util:1.0.0-beta5"
+
     // Navigation components
     implementation "androidx.navigation:navigation-fragment-ktx:$rootProject.navigationVersion"
     implementation "androidx.navigation:navigation-ui-ktx:$rootProject.navigationVersion"
