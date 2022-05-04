@@ -39,7 +39,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion "1.0.1"
+        kotlinCompilerExtensionVersion jetpackComposeVersion
         // kotlinCompilerVersion '1.5.10'
     }
     packagingOptions {
@@ -103,6 +103,7 @@ dependencies {
 
     // Jetpack compose material Design
     implementation "androidx.compose.material:material:$rootProject.jetpackComposeVersion"
+    implementation "androidx.compose.material3:material3:1.0.0-alpha08"
 
     // Jetpack compose material design icons
     implementation "androidx.compose.material:material-icons-core:$rootProject.jetpackComposeVersion"
@@ -122,7 +123,7 @@ dependencies {
     implementation "androidx.navigation:navigation-compose:$rootProject.jetpackComposeNavigationVersion"
 
     // Jetpack compose when adding to an app using MDC theme
-    implementation "com.google.android.material:compose-theme-adapter:$rootProject.jetpackComposeVersion"
+    implementation "com.google.android.material:compose-theme-adapter:$rootProject.jetpackComposeMaterialDesignAdapterVersion"
 
     // Jetpack compose when adding to an app using AppCompat theme
     implementation "com.google.accompanist:accompanist-appcompat-theme:$rootProject.accompanistVersion"

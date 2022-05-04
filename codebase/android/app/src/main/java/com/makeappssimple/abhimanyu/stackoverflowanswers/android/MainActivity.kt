@@ -1,6 +1,5 @@
 package com.makeappssimple.abhimanyu.stackoverflowanswers.android
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -11,11 +10,17 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,17 +50,47 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
+import androidx.compose.material.Card
+import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.IconButton
+import androidx.compose.material.LocalTextStyle
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.typography
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Surface
+import androidx.compose.material.Switch
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -63,16 +98,19 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -80,6 +118,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
+import androidx.compose.ui.graphics.Color.Companion.Blue
+import androidx.compose.ui.graphics.Color.Companion.Cyan
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.Color.Companion.LightGray
@@ -100,45 +140,65 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChangeConsumed
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.google.android.material.button.MaterialButton
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
+import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.roundToInt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlin.math.roundToInt
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @ExperimentalAnimationApi
+
+    @OptIn(InternalCoroutinesApi::class, ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
-            StackOverflowAnswersTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    color = MaterialTheme.colors.background,
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        TextInBorder()
-                    }
-                }
+            StackOverflowAnswersTheme(
+            ) {
+                DefaultAppView()
             }
         }
     }
@@ -146,6 +206,1162 @@ class MainActivity : ComponentActivity() {
     //    override fun dispatchTouchEvent(motionEvent: MotionEvent?): Boolean {
     //        return motionEvent?.pointerCount == 1 && super.dispatchTouchEvent(motionEvent)
     //    }
+}
+
+@Composable
+fun DefaultAppView() {
+    StackOverflowAnswersTheme(
+    ) {
+        // A surface container using the 'background' color from the theme
+        Surface(
+            color = MaterialTheme.colors.background,
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                MyAppView()
+            }
+        }
+    }
+}
+
+@Composable
+fun MyAppView() {
+    val navHostController = rememberNavController()
+    NavHost(
+        navController = navHostController,
+        startDestination = "first",
+    ) {
+        composable(
+            route = "first",
+        ) {
+            Home(
+                navHostController = navHostController,
+            )
+        }
+        composable(
+            route = "second",
+        ) {
+            SimpleTextField(
+                navHostController = navHostController,
+            )
+        }
+    }
+}
+
+@Composable
+fun Home(
+    navHostController: NavController,
+) {
+    LoadAfterComplete()
+}
+
+// New question code comes here
+
+
+
+// https://stackoverflow.com/questions/72099001/show-jetpack-compose-widget-only-after-its-fully-populated
+@Composable
+fun Parent(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Column(modifier) {
+        content()
+        Text("Press me")
+    }
+}
+
+@Composable
+fun LoadAfterComplete() {
+    Parent {
+        (1..3).forEach {
+            Text("Foobar")
+        }
+    }
+}
+
+
+// https://stackoverflow.com/questions/72014895/how-do-i-make-topappbar-background-same-as-rest-of-the-activity-ui
+@Composable
+fun NavigationBar(
+    onIconClicked: () -> Unit,
+    text: String,
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = text,
+                color = Color.Black,
+                fontSize = 48.sp
+            )
+        },
+        navigationIcon = {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close",
+
+                modifier = Modifier.clickable(onClick = onIconClicked),
+                tint = Color.Black
+            )
+        },
+        backgroundColor = Cyan,
+        elevation = 0.dp,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+fun MainView() {
+    Column(
+        Modifier
+            .background(Cyan)
+            .padding(40.dp, 0.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(45.dp)
+    ) {
+        NavigationBar(
+            onIconClicked = { /*TODO*/ },
+            text = "settings",
+        )
+        Box(
+            Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                modifier = Modifier.align(Alignment.CenterStart),
+                text = "current user",
+                style = TextStyle(
+                    colorResource(id = R.color.black),
+                    fontSize = 32.sp
+                )
+            )
+            ClickableText(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                style = TextStyle(
+                    colorResource(id = R.color.black),
+                    fontSize = 32.sp,
+                    textAlign = TextAlign.End,
+                    fontWeight = FontWeight.Bold
+                ),
+                text = AnnotatedString("SIGN OUT"),
+                onClick = {}
+            )
+        }
+        var text by rememberSaveable { mutableStateOf("Text") }
+
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .background(Cyan)
+        ) {
+            TextField(
+                value = text,
+                onValueChange = {
+                    text = it
+                },
+                textStyle = TextStyle(
+                    fontSize = 20.sp,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1,
+                singleLine = true,
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    backgroundColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+            )
+        }
+    }
+}
+
+
+// https://stackoverflow.com/questions/71996179/why-padding-from-top-gets-different-length-value-based-on-elements-alignment
+@Composable
+fun AlignmentPaddingCheck() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Divider(
+                thickness = 3.dp,
+                color = Color.Red
+            )
+
+            Divider(
+                modifier = Modifier
+                    .border(2.dp, color = Blue)
+                    .padding(top = 200.dp)
+                    .border(2.dp, color = Green),
+                thickness = 3.dp,
+                color = Color.Black
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/71996007/type-mismatch-required-paddingvalues-%e2%86%92-unit-found-unit
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ContentPaddingTest() {
+    Scaffold(
+        content = {
+            ProfileContent()
+        },
+    )
+
+    Scaffold() {
+        ProfileContent()
+    }
+}
+
+@Composable
+fun ProfileContent() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 96.dp),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Text(
+            text = "Good day!",
+            fontSize = 48.sp,
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/71992095/lazycolumn-inside-lazycolumn
+@Composable
+fun DropdownExample() {
+    LazyColumn {
+//        items(1) {
+//            Checkbox(checked = false /*checkedState.value*/,
+//                onCheckedChange = {})
+//            Text(text = "$domainResponse.domains[0].name")
+//        }
+//        LazyColumn {
+//            items(domainResponse.domains[0].pwas) { pwas ->
+//                Checkbox(checked = false /*checkedState.value*/,
+//                    onCheckedChange = {})
+//                Text(text = "$pwas")
+//            }
+//        }
+    }
+}
+
+
+// https://stackoverflow.com/questions/71957948/how-to-center-the-middle-child-in-a-compose-row-and-make-it-responsive
+@Composable
+fun MiddleItemRowWrapper() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        MiddleItemRow("Label")
+        MiddleItemRow("Loooooong Label")
+        MiddleItemRow("Very very long Text jknfbajsbdfijag Label")
+
+    }
+}
+
+@Composable
+fun MiddleItemRow(
+    text: String,
+) {
+    CenterAlignedTopAppBar(
+        navigationIcon = {
+            Text(
+                text = text,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                modifier = Modifier
+                    .background(Red)
+                    .padding(
+                        all = 16.dp,
+                    ),
+            )
+        },
+        title = {
+            Button(
+                onClick = { /*TODO*/ },
+                modifier = Modifier
+                    .background(Cyan)
+                    .padding(
+                        all = 8.dp,
+                    ),
+            ) {
+                Text("Button")
+            }
+        },
+        actions = {
+            Icon(
+                imageVector = Icons.Rounded.Settings,
+                contentDescription = null,
+                modifier = Modifier
+                    .background(Green)
+                    .padding(
+                        all = 16.dp,
+                    ),
+            )
+        }
+    )
+
+    /*Row(
+        verticalAlignment = Alignment.CenterVertically,
+        // horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                vertical = 16.dp,
+            )
+            .background(LightGray),
+    ) {
+        Text(
+            text = text,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+            modifier = Modifier
+                .background(Red)
+                .weight(
+                    weight = 1f,
+                )
+                .padding(
+                    all = 16.dp,
+                ),
+        )
+        Button(
+            onClick = { *//*TODO*//* },
+            modifier = Modifier
+                .background(Cyan)
+                //                .weight(
+                //                    weight = 1f,
+                //                    fill = false,
+                //                )
+                .padding(
+                    all = 16.dp,
+                ),
+        ) {
+            Text("Button")
+        }
+        Icon(
+            imageVector = Icons.Rounded.Settings,
+            contentDescription = null,
+            modifier = Modifier
+                .background(Green)
+                //                .weight(
+                //                    weight = 1f,
+                //                    fill = false,
+                //                )
+                .padding(
+                    all = 16.dp,
+                ),
+        )
+    }*/
+}
+
+
+// https://stackoverflow.com/questions/71927791/android-jetpack-compose-how-to-make-text-utilize-complete-row-space-and-break-t
+@Composable
+fun TextWordBreak() {
+    Text(
+        text = "This is a very long adsbgjkfdsabgjkbasdjhjabsdfhvadshbgkjasdbgjkbadsjkgbkbjkbhjavsgd text.",
+        softWrap = false,
+        overflow = TextOverflow.Visible,
+    )
+}
+
+// https://stackoverflow.com/questions/71870416/how-shift-request-focus-to-next-textfield-in-jetpack-compose
+@Composable
+fun OtpScreen() {
+    val focusManager = LocalFocusManager.current
+    val (digit1, setDigit1) = remember {
+        mutableStateOf("")
+    }
+    val (digit2, setDigit2) = remember {
+        mutableStateOf("")
+    }
+    val (digit3, setDigit3) = remember {
+        mutableStateOf("")
+    }
+    val (digit4, setDigit4) = remember {
+        mutableStateOf("")
+    }
+    LaunchedEffect(
+        key1 = digit1,
+    ) {
+        if (digit1.isNotEmpty()) {
+            focusManager.moveFocus(
+                focusDirection = FocusDirection.Next,
+            )
+        }
+    }
+    LaunchedEffect(
+        key1 = digit2,
+    ) {
+        if (digit2.isNotEmpty()) {
+            focusManager.moveFocus(
+                focusDirection = FocusDirection.Next,
+            )
+        }
+    }
+    LaunchedEffect(
+        key1 = digit3,
+    ) {
+        if (digit3.isNotEmpty()) {
+            focusManager.moveFocus(
+                focusDirection = FocusDirection.Next,
+            )
+        }
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+    ) {
+        OutlinedTextField(
+            value = digit1,
+            onValueChange = {
+                setDigit1(it)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Next,
+            ),
+            modifier = Modifier.width(64.dp),
+        )
+        OutlinedTextField(
+            value = digit2,
+            onValueChange = {
+                setDigit2(it)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Next,
+            ),
+            modifier = Modifier.width(64.dp),
+        )
+        OutlinedTextField(
+            value = digit3,
+            onValueChange = {
+                setDigit3(it)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Next,
+            ),
+            modifier = Modifier.width(64.dp),
+        )
+        OutlinedTextField(
+            value = digit4,
+            onValueChange = {
+                setDigit4(it)
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Done,
+            ),
+            modifier = Modifier.width(64.dp),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/71870900/reserve-space-for-invisible-items-in-jetpack-compose/71871204#71871204
+@Composable
+fun SplashScreen() {
+    var imageVisibility by remember {
+        mutableStateOf(false)
+    }
+
+    var textVisibility by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(Unit) {
+        delay(1000)
+        imageVisibility = true
+        delay(5000)
+        textVisibility = true
+        delay(5000)
+        // navHostController.navigate("second")
+    }
+    val alpha: Float by animateFloatAsState(
+        targetValue = if (textVisibility) {
+            1f
+        } else {
+            0f
+        },
+        animationSpec = tween(
+            durationMillis = 3000,
+            easing = LinearEasing,
+        ),
+    )
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column {
+            AnimatedVisibility(
+                visible = imageVisibility,
+                enter = fadeIn(
+                    TweenSpec(
+                        durationMillis = 3000
+                    )
+                )
+            ) {
+                Image(
+                    modifier = Modifier.fillMaxWidth(),
+                    painter = painterResource(id = R.drawable.ic_launcher_background),
+                    contentDescription = "News Splash Screen"
+                )
+            }
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(
+                        alpha = alpha,
+                    ),
+                text = "Read News Everyday",
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+
+// https://stackoverflow.com/questions/71741634/observeasstate-on-viewmodel-livedata-dont-trigger-recomposition-in-compose
+@Composable
+fun AuthScreen(
+    viewModel: UserViewModel = hiltViewModel(),
+) {
+    // val numberState by viewModel.number.observeAsState(0)
+
+    LaunchedEffect(
+        key1 = Unit,
+    ) {
+        // viewModel.getNumber()
+    }
+    // Log.d("Composable numberState", numberState.toString())
+}
+
+class UserViewModel : ViewModel() {
+    private val _number = MutableLiveData<Int>()
+    val number: LiveData<Int> = _number
+
+    fun getNumber() {
+        _number.value = 2
+
+        //THIS LOG SHOWS THAT VALUE HAS BEEN UPDATED
+        Log.d("ViewModel number", _number.value.toString())
+    }
+}
+
+@Composable
+fun BoxCircleCip() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Black),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .clip(CircleShape)
+                .background(Green)
+        )
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun SimpleTextField(
+    navHostController: NavHostController,
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+    var flag by remember {
+        mutableStateOf(true)
+    }
+    val initialText = "Sample Text"
+    var text by remember {
+        mutableStateOf(
+            value = TextFieldValue(
+                text = "Sample Text",
+                selection = TextRange(
+                    start = initialText.length,
+                    end = initialText.length,
+                ),
+            ),
+        )
+    }
+
+    LaunchedEffect(
+        key1 = flag,
+    ) {
+        if (flag) {
+            focusRequester.requestFocus()
+        }
+    }
+
+    Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(all = 32.dp),
+    ) {
+        //        Switch(
+        //            checked = flag,
+        //            onCheckedChange = {
+        //                flag = !flag
+        //            },
+        //        )
+        if (flag) {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { value: TextFieldValue ->
+                    text = value
+                },
+                singleLine = true,
+                modifier = Modifier.focusRequester(focusRequester = focusRequester),
+            )
+            Button(
+                onClick = {
+                    focusManager.clearFocus()
+                },
+            ) {
+                Text("Clear Focus")
+            }
+        }
+
+        //        Button(
+        //            onClick = {
+        //                if (isKeyboardShown) {
+        //                    keyboardController?.hide()
+        //                    focusManager.clearFocus()
+        //                } else {
+        //                    keyboardController?.show()
+        //                }
+        //                isKeyboardShown = !isKeyboardShown
+        //            },
+        //        ) {
+        //            Text(text = "Toggle")
+        //        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun KeyboardCheckTextField() {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    var isKeyboardShown by remember {
+        mutableStateOf(false)
+    }
+    val initialText = "Sample Text"
+    var text by remember {
+        mutableStateOf(
+            value = TextFieldValue(
+                text = "Sample Text",
+                selection = TextRange(
+                    start = initialText.length,
+                    end = initialText.length,
+                ),
+            ),
+        )
+    }
+
+    Column {
+        OutlinedTextField(
+            value = text,
+            onValueChange = { value: TextFieldValue ->
+                text = value
+            },
+            singleLine = true,
+        )
+        Text(text = "Is Keyboard Shown : $isKeyboardShown")
+        Button(
+            onClick = {
+                if (isKeyboardShown) {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                } else {
+                    keyboardController?.show()
+                }
+                isKeyboardShown = !isKeyboardShown
+            },
+        ) {
+            Text(text = "Toggle")
+        }
+    }
+}
+
+fun onBottomSheetDismiss() {
+    Log.e("TAG", "Bottom sheet Dismissed")
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun BottomSheetDismissAction() {
+    val coroutineScope: CoroutineScope = rememberCoroutineScope()
+    val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+    )
+
+    ModalBottomSheetLayout(
+        sheetState = modalBottomSheetState,
+        sheetContent = {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Text(
+                    text = "Bottom Sheet Content",
+                    modifier = Modifier.padding(all = 64.dp),
+                )
+            }
+        },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            TextButton(
+                onClick = {
+                    coroutineScope.launch {
+                        if (!modalBottomSheetState.isAnimationRunning) {
+                            if (modalBottomSheetState.isVisible) {
+                                modalBottomSheetState.hide()
+                            } else {
+                                modalBottomSheetState.show()
+                            }
+                        }
+                    }
+                },
+            ) {
+                Text("Show Bottom Sheet")
+            }
+        }
+    }
+}
+
+@Composable
+fun AutoFocusedTextField() {
+    val initialText = "Sample Text"
+    var text by remember {
+        mutableStateOf(
+            value = TextFieldValue(
+                text = "Sample Text",
+                selection = TextRange(
+                    start = initialText.length,
+                    end = initialText.length,
+                ),
+            ),
+        )
+    }
+
+    BasicTextField(
+        value = text,
+        onValueChange = { value: TextFieldValue ->
+            text = value
+        },
+        modifier = Modifier,
+        singleLine = true,
+    )
+}
+
+// https://stackoverflow.com/questions/71151322/can-i-use-statearraylistt-or-statemutablelistof-for-observed-by-compose
+@Composable
+fun ComposeListExample() {
+    var mutableList: MutableState<MutableList<String>> = remember {
+        mutableStateOf(mutableListOf())
+    }
+    var mutableList1: MutableState<MutableList<String>> = remember {
+        mutableStateOf(mutableListOf())
+    }
+    var arrayList: MutableState<ArrayList<String>> = remember {
+        mutableStateOf(ArrayList())
+    }
+    var arrayList1: MutableState<ArrayList<String>> = remember {
+        mutableStateOf(ArrayList())
+    }
+    var list: MutableState<List<String>> = remember {
+        mutableStateOf(listOf())
+    }
+    var stateList = remember {
+        mutableStateListOf<String>()
+    }
+
+    Column(
+        Modifier.verticalScroll(state = rememberScrollState())
+    ) {
+        // ShowListItems("MutableList", mutableList.value)
+        // ShowListItems("Working MutableList", mutableList1.value)
+        // ShowListItems("ArrayList", arrayList.value)
+        // ShowListItems("Working ArrayList", arrayList1.value)
+        // ShowListItems("List", list.value)
+
+        Button(
+            onClick = {
+                mutableList.value.add("")
+                arrayList.value.add("")
+
+                val newMutableList1 = mutableListOf<String>()
+                mutableList1.value.forEach {
+                    newMutableList1.add(it)
+                }
+                newMutableList1.add("")
+                mutableList1.value = newMutableList1
+
+                val newArrayList1 = arrayListOf<String>()
+                arrayList1.value.forEach {
+                    newArrayList1.add(it)
+                }
+                newArrayList1.add("")
+                arrayList1.value = newArrayList1
+
+                val newList = mutableListOf<String>()
+                list.value.forEach {
+                    newList.add(it)
+                }
+                newList.add("")
+                list.value = newList
+            },
+        ) {
+            Text(text = "Add")
+        }
+    }
+}
+
+@Composable
+private fun ShowListItems(title: String, list: List<String>) {
+    Text(title)
+    Column {
+        repeat(list.size) {
+            Text("$title Item Added")
+        }
+    }
+}
+
+
+// https://stackoverflow.com/questions/71141501/cant-animate-fab-visible-in-m3-scaffold
+@OptIn(
+    ExperimentalAnimationApi::class,
+    androidx.compose.material3.ExperimentalMaterial3Api::class
+)
+@Composable
+fun FabHide() {
+    var fabVisible by remember {
+        mutableStateOf(true)
+    }
+    Scaffold(
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = fabVisible,
+                enter = scaleIn(),
+                exit = scaleOut(),
+            ) {
+                FloatingActionButton(onClick = {}) {
+                    Icon(Icons.Default.Star, contentDescription = null)
+                }
+            }
+        }
+    ) {
+        Button(
+            onClick = {
+                fabVisible = !fabVisible
+            },
+        ) {
+            Text("Click to toggle FAB")
+        }
+    }
+}
+
+
+// https://stackoverflow.com/questions/71126264/lazy-vertical-grid-workaround-in-compose#71126264
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun VerticalGrid() {
+    val list = listOf("Apple", "Google", "Amazon", "Meta")
+    val state = rememberLazyListState()
+    /*LazyVerticalGrid(
+        cells = GridCells.Fixed(2),
+        state = state,
+    ) {
+        items(list) { item ->
+            Text(item)
+        }
+    }*/
+}
+
+
+// https://stackoverflow.com/questions/71105292/how-to-communicate-with-server-in-a-jetpack-compose-app?noredirect=1#comment125727901_71105292
+suspend fun getServerMessage(): String {
+    delay(5000)
+    return "Success"
+}
+
+class GreetingFromServerViewModel : ViewModel() {
+    var text by mutableStateOf("waiting for message")
+
+    init {
+        getMessage()
+    }
+
+    private fun getMessage() {
+        viewModelScope.launch(Dispatchers.IO) {
+            text = getServerMessage()
+        }
+    }
+}
+
+@Composable
+fun GreetingFromServer(
+    viewmodel: GreetingFromServerViewModel = viewModel(),
+) {
+    Text(viewmodel.text)
+}
+
+
+// https://stackoverflow.com/questions/71043481/using-sans-serif-condensed-in-compose
+@Composable
+fun CustomFontText() {
+    Text(
+        text = "Hello Font !",
+        fontFamily = FontFamily.SansSerif,
+    )
+}
+
+// https://stackoverflow.com/questions/71033789/how-to-handle-one-shot-operations-in-jetpack-compose
+@Composable
+fun OneShotOperation(
+    viewmodel: OneShotOperationViewModel = viewModel(),
+) {
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        Log.e("TAG", "Before collector")
+        viewmodel
+            .toastMessage
+            .collect { message ->
+                Toast.makeText(
+                    context,
+                    message,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        Log.e("TAG", "After collector")
+    }
+
+    Column {
+        Button(
+            onClick = {
+                viewmodel.sendMessage("Sample Toast")
+            },
+        ) {
+            Text(text = "Show Toast")
+        }
+    }
+}
+
+class OneShotOperationViewModel : ViewModel() {
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
+
+    fun sendMessage(message: String) {
+        viewModelScope.launch {
+            _toastMessage.emit(message)
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/70959795/lazycolumn-items-stay-in-same-position-after-some-items-removed/70959871?noredirect=1#comment125461701_70959871
+/*
+@ExperimentalMaterialApi
+@Composable
+fun Screen(
+    viewModel: MyViewModel = MyViewModel(),
+) {
+    val livedata = viewModel.itemsLiveData.observeAsState()
+    val stateList = remember { mutableStateListOf<String>() }
+
+    stateList.addAll(livedata.value!!)
+    SwipableLazyColumn(viewModel, stateList)
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun SwipableLazyColumn(
+    viewModel: MyViewModel,
+    stateList: SnapshotStateList<String>,
+) {
+    LazyColumn {
+        items(items = stateList) { item ->
+            val dismissState = rememberDismissState()
+            if (dismissState.isDismissed(DismissDirection.EndToStart) || dismissState.isDismissed(
+                    DismissDirection.StartToEnd)
+            ) {
+                viewModel.swipeToDelete(item)
+            }
+            SwipeToDismiss(
+                state = dismissState,
+                directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart),
+                dismissThresholds = {
+                    FractionalThreshold(0.25f)
+                },
+                background = {},
+                dismissContent = {
+                    // MyData(item)
+                }
+            )
+        }
+    }
+}
+
+class MyViewModel internal constructor() : LifecycleObserver {
+
+    private val itemsList = mutableListOf<String>()
+
+    private val _itemsLiveData = MutableLiveData<List<String>>()
+    val itemsLiveData: LiveData<List<String>> = _itemsLiveData
+
+    init {
+        loadItems()
+    }
+
+    private fun loadItems() {
+        onItemsLoaded(it.data)
+    }
+
+    private fun onItemsLoaded(itemsList: List<String>) {
+        itemsList.clear()
+        // itemsList.addAll(notifications)
+
+        _itemsLiveData.value = if (itemsList.isNotEmpty()) {
+            itemsList
+        } else {
+            null
+        }
+    }
+
+    fun swipeToDelete(item: String) {
+        if (itemsList.size == 0) return
+        // itemRepository.deletelItem(item)
+        onItemDeleted(item)
+    }
+
+    private fun onItemDeleted(item: String) {
+        itemsList.remove(item)
+        _itemsLiveData.value = itemsList
+    }
+}
+*/
+
+// https://stackoverflow.com/questions/70907656/strange-behaviour-with-horizontalarrangement-using-jetpack-compose
+@Composable
+fun ToolContent_() {
+    Column {
+        SettingsSwitch_("launch something 1")
+        SettingsSwitch_("launch launch launch launch again and again and again something 2")
+        SettingsSwitch_("launch something 3")
+    }
+}
+
+@Composable
+fun SettingsSwitch_(
+    subtitle: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Red)
+            .padding(start = 16.dp, end = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            subtitle,
+            Modifier
+                .background(Cyan)
+                .padding(end = 16.dp) // .weight(1f)
+        )
+        Switch(checked = false, onCheckedChange = null, modifier = Modifier.background(Green))
+    }
+}
+
+// https://stackoverflow.com/questions/70895403/how-do-i-center-all-items-in-a-weighted-row-column
+@Composable
+private fun CenterAlignInRow() {
+
+    Row(
+        modifier = Modifier
+            .background(Cyan)
+            .fillMaxWidth(),
+    ) {
+        Image(
+            painter = painterResource(
+                id = R.drawable.ic_launcher_foreground,
+            ),
+            contentDescription = "",
+            modifier = Modifier
+                .background(Red)
+                .aspectRatio(1f, true)
+                .weight(1f),
+        )
+        Image(
+            painter = painterResource(
+                id = R.drawable.ic_launcher_foreground,
+            ),
+            contentDescription = "",
+            modifier = Modifier
+                .background(Green)
+                .aspectRatio(1f, true)
+                .weight(1f),
+        )
+        Image(
+            painter = painterResource(
+                id = R.drawable.ic_launcher_foreground,
+            ),
+            contentDescription = "",
+            modifier = Modifier
+                .background(Blue)
+                .aspectRatio(1f, true)
+                .weight(1f),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/70279307/how-to-clear-a-textfields-value-and-clear-the-focus-at-the-same-time
+@Composable
+private fun ResetAndClearTextField() {
+    val (textFieldValue, setTextFieldValue) = remember {
+        mutableStateOf(
+            TextFieldValue("")
+        )
+    }
+    val focusManager = LocalFocusManager.current
+
+    Column {
+        TextField(
+            value = textFieldValue,
+            onValueChange = setTextFieldValue
+        )
+
+        Button(onClick = {
+            setTextFieldValue(TextFieldValue(""))
+            focusManager.clearFocus()
+        }) {
+            Text("reset and clear")
+        }
+    }
 }
 
 @Composable
@@ -457,12 +1673,15 @@ fun ExpandableSearchbar() {
 @Composable
 fun TextBorder() {
     Column {
-        Text("Box around text",
+        Text(
+            "Box around text",
             modifier = Modifier
                 .padding(top = 8.dp)
                 .border(width = 2.dp, color = Red)
-                .background(Color.DarkGray))
-        Text("Box around text with a very very very very longlonglonglongword",
+                .background(Color.DarkGray)
+        )
+        Text(
+            "Box around text with a very very very very longlonglonglongword",
             modifier = Modifier
                 .padding(top = 8.dp)
                 .border(width = 2.dp, color = Red)
@@ -584,7 +1803,8 @@ suspend fun PointerInputScope.detectTapAndPressUnconsumed(
             pressScope.reset()
             awaitPointerEventScope {
 
-                val down = awaitFirstDown(requireUnconsumed = false).also { it.consumeDownChange() }
+                val down =
+                    awaitFirstDown(requireUnconsumed = false).also { it.consumeDownChange() }
 
                 if (onPress !== NoPressGesture) {
                     launch { pressScope.onPress(down.position) }
@@ -1442,11 +2662,13 @@ fun BooleanToggle(
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            Text(text = if (enabledStateFlow) {
-                "Enabled"
-            } else {
-                "Disabled"
-            })
+            Text(
+                text = if (enabledStateFlow) {
+                    "Enabled"
+                } else {
+                    "Disabled"
+                }
+            )
             Button(onClick = { viewmodel.setEnabledStateFlow(!enabledStateFlow) }) {
                 Text("Toggle State Flow")
             }
@@ -1459,11 +2681,13 @@ fun BooleanToggle(
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            Text(text = if (enabledState) {
-                "Enabled"
-            } else {
-                "Disabled"
-            })
+            Text(
+                text = if (enabledState) {
+                    "Enabled"
+                } else {
+                    "Disabled"
+                }
+            )
             Button(onClick = { viewmodel.setEnabledState(!enabledState) }) {
                 Text("Toggle State")
             }
@@ -1476,11 +2700,13 @@ fun BooleanToggle(
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            Text(text = if (enabled) {
-                "Enabled"
-            } else {
-                "Disabled"
-            })
+            Text(
+                text = if (enabled) {
+                    "Enabled"
+                } else {
+                    "Disabled"
+                }
+            )
             Button(onClick = { viewmodel.setEnabled(!enabled) }) {
                 Text("Toggle Value")
             }
@@ -1529,6 +2755,7 @@ fun MaterialButtonInterOp() {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 // https://stackoverflow.com/questions/69753048/how-can-i-change-topappbar-position-in-the-jetpack-compose
 fun AppBarPos() {
@@ -1834,10 +3061,12 @@ fun SecondAlertDialog() {
             // title = { Text("Title") },
             text = {
                 Column {
-                    Text("Title",
+                    Text(
+                        "Title",
                         Modifier
                             .background(Color.Blue)
-                            .fillMaxWidth())
+                            .fillMaxWidth()
+                    )
                     OutlinedTextField(
                         value = text.value,
                         onValueChange = {

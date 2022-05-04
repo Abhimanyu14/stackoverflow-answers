@@ -18,13 +18,13 @@ val linear = Brush.linearGradient(
     end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
 )
 
-private val DarkColorPalette = darkColors(
+val DarkColorPalette = darkColors(
     primary = Purple200,
     primaryVariant = Purple700,
     secondary = Teal200,
 )
 
-private val LightColorPalette = lightColors(
+val LightColorPalette = lightColors(
     primary = Purple500,
     primaryVariant = Purple700,
     secondary = Teal200,
