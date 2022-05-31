@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    compileSdk 31
+    compileSdk 32
 
     defaultConfig {
         applicationId "com.makeappssimple.abhimanyu.stackoverflowanswers.android"
         minSdk 21
-        targetSdk 31
+        targetSdk 32
         versionCode 1
         versionName "1.0"
 
@@ -47,6 +47,7 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+    namespace 'com.makeappssimple.abhimanyu.stackoverflowanswers.android'
 }
 
 dependencies {
@@ -70,7 +71,7 @@ dependencies {
     // implementation "androidx.activity:activity-ktx:$rootProject.androidxActivityVersion"
 
     // Lifecycle components
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.lifecycleComponentsVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.lifecycleViewModelVersion"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$rootProject.lifecycleLiveDataVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.lifecycleComponentsVersion"
     // kapt "androidx.lifecycle:lifecycle-compiler:$rootProject.lifecycleComponentsVersion"
@@ -87,6 +88,7 @@ dependencies {
 
     // Jetpack compose
     implementation "androidx.compose.ui:ui:$rootProject.jetpackComposeVersion"
+    implementation "androidx.compose.ui:ui-util:$rootProject.jetpackComposeVersion"
 
     // Jetpack compose tooling support (Previews, etc.)
     debugImplementation "androidx.compose.ui:ui-tooling:$rootProject.jetpackComposeVersion"
@@ -103,7 +105,7 @@ dependencies {
 
     // Jetpack compose material Design
     implementation "androidx.compose.material:material:$rootProject.jetpackComposeVersion"
-    implementation "androidx.compose.material3:material3:1.0.0-alpha08"
+    implementation 'androidx.compose.material3:material3:1.0.0-alpha12'
 
     // Jetpack compose material design icons
     implementation "androidx.compose.material:material-icons-core:$rootProject.jetpackComposeVersion"
@@ -128,7 +130,7 @@ dependencies {
     // Jetpack compose when adding to an app using AppCompat theme
     implementation "com.google.accompanist:accompanist-appcompat-theme:$rootProject.accompanistVersion"
 
-    implementation "org.jetbrains.compose.ui:ui-util:1.0.0-beta5"
+    implementation 'org.jetbrains.compose.ui:ui-util:1.2.0-alpha01-dev620'
 
     // Navigation components
     implementation "androidx.navigation:navigation-fragment-ktx:$rootProject.navigationVersion"

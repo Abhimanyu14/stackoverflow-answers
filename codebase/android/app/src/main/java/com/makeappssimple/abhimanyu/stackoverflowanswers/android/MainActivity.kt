@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -58,6 +59,9 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.BottomSheetScaffold
+import androidx.compose.material.BottomSheetState
+import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
@@ -85,6 +89,7 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -145,6 +150,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -254,18 +261,110 @@ fun MyAppView() {
 fun Home(
     navHostController: NavController,
 ) {
-    LoadAfterComplete()
+    TextWithoutPadding()
 }
 
 // New question code comes here
 
+// https://stackoverflow.com/questions/72444028/how-to-remove-default-padding-in-text-jetpack-compose
+@OptIn(ExperimentalTextApi::class)
+@Composable
+fun TextWithoutPadding() {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        Text(
+            text = AnnotatedString("Sample Text"),
+            fontSize = 64.sp,
+            style = TextStyle(
+                platformStyle = PlatformTextStyle(
+                    includeFontPadding = true,
+                ),
+            ),
+            modifier = Modifier
+                .background(
+                    color = Cyan,
+                ),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = AnnotatedString("Sample Text"),
+            fontSize = 64.sp,
+            style = TextStyle(
+                platformStyle = PlatformTextStyle(
+                    includeFontPadding = false,
+                ),
+            ),
+            modifier = Modifier
+                .background(
+                    color = Cyan,
+                ),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/72112222/jetpack-compose-bottom-sheet-is-getting-collapsed-with-swipe-inside-its-content?noredirect=1#comment127421647_72112222
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun NonSwipeableBottomSheet() {
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
+    )
+    val isCollapsed = bottomSheetScaffoldState.bottomSheetState.isCollapsed
+    val coroutineScope = rememberCoroutineScope()
+    BottomSheetScaffold(
+        scaffoldState = bottomSheetScaffoldState,
+        sheetContent = {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(
+                        minHeight = 1.dp,
+                    )
+                    .height(200.dp)
+            ) {
+                Text(
+                    text = "Hello from sheet",
+                )
+            }
+        },
+        sheetPeekHeight = if (isCollapsed) {
+            200.dp
+        } else {
+            200.dp
+        },
+    ) {
+        Button(
+            onClick = {
+                coroutineScope.launch {
+                    if (isCollapsed) {
+                        bottomSheetScaffoldState.bottomSheetState.expand()
+                    } else {
+                        bottomSheetScaffoldState.bottomSheetState.collapse()
+                    }
+                }
+            },
+        ) {
+            Text(
+                text = if (isCollapsed) {
+                    "Expand Bottom Sheet"
+                } else {
+                    "Collapse Bottom Sheet"
+                },
+            )
+        }
+    }
+}
 
 
 // https://stackoverflow.com/questions/72099001/show-jetpack-compose-widget-only-after-its-fully-populated
 @Composable
 fun Parent(
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Column(modifier) {
         content()
@@ -412,15 +511,11 @@ fun AlignmentPaddingCheck() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentPaddingTest() {
-    Scaffold(
+    /*Scaffold(
         content = {
             ProfileContent()
         },
-    )
-
-    Scaffold() {
-        ProfileContent()
-    }
+    )*/
 }
 
 @Composable
@@ -1074,7 +1169,7 @@ fun FabHide() {
                 }
             }
         }
-    ) {
+    ) { padding ->
         Button(
             onClick = {
                 fabVisible = !fabVisible
