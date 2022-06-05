@@ -149,6 +149,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.PlatformTextStyle
@@ -261,10 +262,243 @@ fun MyAppView() {
 fun Home(
     navHostController: NavController,
 ) {
-    TextWithoutPadding()
+    LocalizedGreeting()
 }
 
 // New question code comes here
+
+// https://stackoverflow.com/questions/72477106/stringresource-not-loading-strings-of-current-locale?noredirect=1#comment128072981_72477106
+@Composable
+fun LocalizedGreeting() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        Text(
+            stringResource(
+                id = R.string.localized_greeting,
+            )
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/72483398/swipetodismess-swipetodismiss-overlays-on-the-next-list-item-when-swiped-how
+/*@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun SwipeToDismissSample() {
+    val list = (1..10).toMutableList()
+    val dismissState = rememberDismissState(
+        confirmStateChange = {
+            if (it == DismissValue.DismissedToStart) {
+                list.remove(it)
+                storedItemsViewModel.deleteOne(sentence)
+            }
+            true
+        }
+    )
+    val direction = dismissState.dismissDirection
+    SwipeToDismiss(
+        state = dismissState,
+        */
+/***  create dismiss alert Background *//*
+        directions = setOf(
+            DismissDirection.EndToStart
+        ),
+        dismissThresholds = {
+            *//*direction ->*//*
+            FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.1f else 0.5f)
+            FractionalThreshold(0.2f)
+        },
+        background = {
+            val color = when (dismissState.dismissDirection) {
+                DismissDirection.StartToEnd -> Green
+                DismissDirection.EndToStart -> Red
+                null -> Transparent
+            }
+            val alignment = Alignment.CenterEnd
+            val icon = Icons.Default.Delete
+            val scale by animateFloatAsState(
+                // this scales the icon
+                if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(color)
+                    .padding(horizontal = Dp(20f)),
+                contentAlignment = alignment
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = "Delete Icon",
+                    modifier = Modifier.scale(scale)
+                )
+            }
+        },
+        *//**** Dismiss Content *//*
+        dismissContent = {
+            Card(
+                elevation = animateDpAsState(if (dismissState.dismissDirection != null) 4.dp else 0.dp).value,
+            ) {
+                FavoriteItem(sentence, word, grammar)
+            }
+        },
+    )
+}*/
+
+// https://stackoverflow.com/questions/72474483/how-to-listen-to-keyboard-events-in-jetpack-compose-without-a-textfield
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun CustomInput() {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusRequester = remember {
+        FocusRequester()
+    }
+
+    LaunchedEffect(
+        key1 = Unit,
+    ) {
+        focusRequester.requestFocus()
+        keyboardController?.show()
+    }
+
+    var text by remember {
+        mutableStateOf(
+            value = "Sample Text",
+        )
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box {
+            Text(
+                text = text,
+            )
+            BasicTextField(
+                value = text,
+                onValueChange = { value: String ->
+                    text = value
+                },
+                modifier = Modifier
+                    .focusRequester(focusRequester),
+                singleLine = true,
+            )
+            Box(
+                modifier = Modifier
+                    .background(Red)
+                    .matchParentSize()
+                    .focusable(true)
+                    .focusRequester(focusRequester)
+                    .alpha(0f)
+                    .clickable(
+                        onClick = {
+                            keyboardController?.show()
+                        },
+                    ),
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/72448831/compose-textfield-with-blinking-cursor-and-without-the-systems-keyboard
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun FocusedTextFieldWithoutKeyboard() {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusRequester = remember {
+        FocusRequester()
+    }
+
+    LaunchedEffect(
+        key1 = Unit,
+    ) {
+        focusRequester.requestFocus()
+        keyboardController?.hide()
+    }
+
+    val initialText = "Sample Text"
+    var text by remember {
+        mutableStateOf(
+            value = TextFieldValue(
+                text = "Sample Text",
+                selection = TextRange(
+                    start = initialText.length,
+                    end = initialText.length,
+                ),
+            ),
+        )
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box {
+            BasicTextField(
+                value = text,
+                onValueChange = { value: TextFieldValue ->
+                    text = value
+                },
+                modifier = Modifier
+                    .focusRequester(focusRequester),
+                singleLine = true,
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .alpha(0f)
+                    .clickable(
+                        onClick = {},
+                    ),
+            )
+        }
+        Row {
+            Button(
+                onClick = {
+                    text = text.copy(
+                        text = "${text.text}1",
+                        selection = TextRange(
+                            start = text.text.length + 1,
+                            end = text.text.length + 1,
+                        ),
+                    )
+                },
+                modifier = Modifier.padding(horizontal = 8.dp),
+            ) {
+                Text(text = "1")
+            }
+            Button(
+                onClick = {
+                    text = text.copy(
+                        text = "${text.text}2",
+                        selection = TextRange(
+                            start = text.text.length + 1,
+                            end = text.text.length + 1,
+                        ),
+                    )
+                },
+                modifier = Modifier.padding(horizontal = 8.dp),
+            ) {
+                Text(text = "2")
+            }
+            Button(
+                onClick = {
+                    text = text.copy(
+                        text = "${text.text}3",
+                        selection = TextRange(
+                            start = text.text.length + 1,
+                            end = text.text.length + 1,
+                        ),
+                    )
+                },
+                modifier = Modifier.padding(horizontal = 8.dp),
+            ) {
+                Text(text = "3")
+            }
+        }
+    }
+}
 
 // https://stackoverflow.com/questions/72444028/how-to-remove-default-padding-in-text-jetpack-compose
 @OptIn(ExperimentalTextApi::class)
@@ -468,10 +702,10 @@ fun MainView() {
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     textColor = Color.Black,
-                    backgroundColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
+                    backgroundColor = Transparent,
+                    focusedIndicatorColor = Transparent,
+                    unfocusedIndicatorColor = Transparent,
+                    disabledIndicatorColor = Transparent
                 ),
             )
         }
@@ -492,7 +726,7 @@ fun AlignmentPaddingCheck() {
         ) {
             Divider(
                 thickness = 3.dp,
-                color = Color.Red
+                color = Red
             )
 
             Divider(

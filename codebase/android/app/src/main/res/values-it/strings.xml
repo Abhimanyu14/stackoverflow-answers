@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Stackoverflow Answers</string>
 
-    <string name="localized_greeting">Hello!</string>
+    <string name="localized_greeting">Ciao!</string>
 </resources>
