@@ -1,5 +1,9 @@
 package com.makeappssimple.abhimanyu.stackoverflowanswers.android
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -35,6 +39,7 @@ import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -49,7 +54,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -97,6 +104,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -144,8 +152,10 @@ import androidx.compose.ui.input.pointer.isOutOfBounds
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChangeConsumed
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -165,6 +175,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAll
@@ -196,6 +207,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -262,25 +274,478 @@ fun MyAppView() {
 fun Home(
     navHostController: NavController,
 ) {
-    LocalizedGreeting()
+    RtlLabelInOutlineTextField()
 }
 
 // New question code comes here
 
+// https://stackoverflow.com/questions/72813452/how-to-change-label-direction-in-the-outlinedtextfield
+@Composable
+fun RtlLabelInOutlineTextField() {
+    val (digit1, setDigit1) = remember {
+        mutableStateOf("")
+    }
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        OutlinedTextField(
+            value = digit1,
+            onValueChange = {
+                setDigit1(it)
+            },
+            label = {
+                Text("Label")
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Next,
+            ),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/72772733/how-can-i-click-on-component-behind-any-component-in-jetpack-compose
+@Composable
+fun ClickThrough() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = Modifier
+                .size(200.dp)
+                .clickable {
+                    Log.e("Test", "Clicked Red Box")
+                },
+            color = Color.Red
+        ) {}
+        DisabledClickableSwitch()
+        Surface(
+            modifier = Modifier
+                .size(50.dp)
+                .clickable(
+                    enabled = false, onClick = {},
+                ),
+            color = Color.Blue
+        ) {}
+    }
+}
+
+// https://stackoverflow.com/questions/72678189/is-there-a-way-to-check-if-user-has-scrolled-before
+@Composable
+fun IsScrolled() {
+    var isScrolled by remember {
+        mutableStateOf(false)
+    }
+    val scrollState = rememberLazyListState()
+    val list = Array(50) {
+        "Item ${it + 1}"
+    }
+
+    LaunchedEffect(
+        key1 = scrollState.isScrollInProgress,
+    ) {
+        if (!isScrolled) {
+            isScrolled = scrollState.isScrollInProgress
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        Text(text = "$isScrolled")
+        LazyColumn(
+            state = scrollState,
+            modifier = Modifier
+                .background(LightGray)
+                .fillMaxSize(),
+        ) {
+            items(list) {
+                Text(
+                    text = it,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .background(White),
+                )
+            }
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/72681547/android-jetpack-compose-position-children-in-lazyrow
+@Composable
+fun ScrollableRowWithSpace() {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+
+    val list = Array(10) {
+        "Item ${it + 1}"
+    }
+
+    LazyRow(
+        modifier = Modifier
+            .background(LightGray)
+            .fillMaxWidth(),
+    ) {
+        item {
+            Spacer(modifier = Modifier
+                .background(White)
+                .width(screenWidth / 2))
+        }
+        items(list) {
+            Text(
+                text = it,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .background(White),
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/72620951/fold-in-and-fold-out-in-modifier
+@Composable
+fun FoldInAndFoldOut() {
+    val modifier = Modifier
+        .size(40.dp)
+        .background(Color.Gray)
+        .clip(CircleShape)
+    LaunchedEffect(modifier) {
+        modifier.foldIn(0) { index, element: Modifier.Element ->
+            Log.e("TAG", "$index -> $element")
+            index + 1
+        }
+        modifier.foldOut(0) { element: Modifier.Element, index ->
+            Log.e("TAG", "$index -> $element")
+            index + 1
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1F)
+                .fillMaxWidth(),
+        ) {
+            Text("Child 1")
+        }
+        Row(
+            modifier = Modifier
+                .weight(1F)
+                .fillMaxWidth(),
+        ) {
+            Text("Child 1")
+        }
+        Box(modifier = modifier.weight(1F))
+    }
+}
+
+// https://stackoverflow.com/questions/68655165/break-sentence-line-with-hyphen-if-word-is-too-long-in-android-jetpack-compose/72556451#72556451
+@Composable
+fun LongText() {
+    Text("This is a verrrryryryryreyeryeryeryerreyrfjdafbgkjabfdgbjabldfjbgjbakfdjbkgjbkadfbkgbbafdlbgboafdghbafdhlgalfdhgabdfgbfadhglfahgheyer long text".replace(
+        " ",
+        "\u00AD"))
+}
+
+// https://stackoverflow.com/questions/71476488/equal-width-elements-in-jetpack-compose-row
+// https://stackoverflow.com/questions/72553148/how-can-i-make-all-cells-of-a-row-have-the-width-of-the-widest-one
+@Composable
+fun AutoWidthRow() {
+    val items = listOf("Item 1", "Item 2", "Item 300")
+    Row(
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier.width(IntrinsicSize.Min),
+    ) {
+        items.forEach { option ->
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .padding(
+                        vertical = 6.dp, horizontal = 1.dp
+                    )
+                    // .width(IntrinsicSize.Max) // Removing this will wrap the text
+                    .weight(1F)
+                    .background(Color.Black)
+            ) {
+                Text(
+                    text = option,
+                    color = Color.White,
+                    modifier = Modifier
+                        .padding(14.dp),
+                )
+            }
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/72545412/on-swipe-down-jetpack-compose-modalbottomsheet-skip-halfexpanded-state
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun ModalBottomSheetSingleSwipe() {
+    val coroutineScope: CoroutineScope = rememberCoroutineScope()
+    val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+//        confirmStateChange = {
+//            it != ModalBottomSheetValue.HalfExpanded
+//        },
+    )
+
+    LaunchedEffect(
+        key1 = modalBottomSheetState.currentValue,
+    ) {
+        if (modalBottomSheetState.targetValue == ModalBottomSheetValue.HalfExpanded) {
+            coroutineScope.launch {
+                modalBottomSheetState.animateTo(ModalBottomSheetValue.Hidden)
+            }
+        }
+    }
+    ModalBottomSheetLayout(
+        sheetState = modalBottomSheetState,
+        sheetContent = {
+            Text(
+                text = "Bottom Sheet Content",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(all = 16.dp)
+                    .background(LightGray)
+                    .wrapContentHeight()
+                    .height(800.dp),
+            )
+        },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+        ) {
+            TextButton(
+                onClick = {
+                    coroutineScope.launch {
+                        // modalBottomSheetState.show()
+                        modalBottomSheetState.animateTo(ModalBottomSheetValue.Expanded)
+                    }
+                },
+            ) {
+                Text(text = "Open Bottom Sheet")
+            }
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/72546187/kotlin-jetpack-compose-center-text-in-column-inside-a-lazycolum
+@Composable
+fun CenterTextWithFixedHeight() {
+    Text(
+        text = "Center",
+        modifier = Modifier
+            .background(LightGray)
+            .fillMaxWidth()
+            .height(50.dp)
+            .wrapContentHeight(),
+        textAlign = TextAlign.Center, // without it image 1, with it image 2
+        color = Color.Black,
+    )
+}
+
+// https://stackoverflow.com/questions/72546187/kotlin-jetpack-compose-center-text-in-column-inside-a-lazycolum
+@Composable
+fun CenterTextInColumn() {
+    Box(modifier = Modifier
+        .background(Color(0xFFf4f4f4))
+        .fillMaxSize()
+        .padding(top = 20.dp)) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            elevation = 5.dp
+        ) {
+            val colorNamesList = listOf("Red", "Green", "Blue", "Indigo")
+            LazyColumn() {
+                itemsIndexed(
+                    colorNamesList,
+                ) { index, item ->
+                    Column(
+                        modifier = Modifier
+                            .background(
+                                color = Color(0xFFf2f2f2),
+                            )
+                            .clickable {
+                                println(item)
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally,//those 2 does nothing
+                        verticalArrangement = Arrangement.Center //when i change it nothing change
+                    ) {
+                        println(item + index)
+                        Text(
+                            text = "Item at  $item",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .wrapContentHeight(),
+                            textAlign = TextAlign.Center, // without it image 1, with it image 2
+                            color = Color.Black,
+                        )
+                        if (index < colorNamesList.lastIndex) {
+                            Divider(
+                                color = Color.Black.copy(alpha = 0.2f),
+                                modifier = Modifier
+                                    .padding(horizontal = 80.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// https://stackoverflow.com/questions/72544313/kotlin-jetpack-compose-divider-before-my-first-item-with-lazycolumn-and-surface
+@Composable
+fun DividerCard() {
+    Box(
+        modifier = Modifier
+            .background(Color(0xFFf4f4f4))
+            .fillMaxSize()
+            .padding(top = 20.dp),
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            elevation = 5.dp,
+        ) {
+            val colorNamesList = listOf("Red", "Green", "Blue", "Indigo")
+            LazyColumn {
+                itemsIndexed(
+                    colorNamesList,
+                ) { index, item ->
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .background(
+                                color = Color(0xFFf2f2f2),
+                            )
+                            .clickable {
+                                println(item)
+                            },
+                    ) {
+                        println(item + index)
+                        Text(
+                            text = "Item at  $item",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .padding(top = 15.dp),
+                            textAlign = TextAlign.Center,
+                            color = Color.Black,
+                        )
+                        if (index < colorNamesList.lastIndex) {
+                            Divider(
+                                color = Color.Black.copy(alpha = 0.2f),
+                                modifier = Modifier
+                                    .padding(horizontal = 80.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// https://stackoverflow.com/questions/72514987/unexpected-border-in-composables-border-shows-even-if-border-width-is-zero
+@Composable
+fun TextBoxPreview() {
+    TextBox(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(75.dp)
+            .padding(16.dp),
+        backgroundColor = Color.Yellow,
+        borderWidth = 0.dp,
+        borderColor = Green
+    )
+}
+
+@Composable
+fun TextBox(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.Yellow,
+    borderWidth: Dp = 0.dp,
+    borderColor: Color = Black,
+) {
+    Box(
+        modifier = modifier
+            .background(backgroundColor)
+            .border(
+                width = borderWidth,
+                color = if (borderWidth == 0.dp) {
+                    Transparent
+                } else {
+                    borderColor
+                },
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = "EXPLORE")
+    }
+}
+
 // https://stackoverflow.com/questions/72477106/stringresource-not-loading-strings-of-current-locale?noredirect=1#comment128072981_72477106
 @Composable
 fun LocalizedGreeting() {
+    val context = LocalContext.current
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize(),
     ) {
-        Text(
-            stringResource(
-                id = R.string.localized_greeting,
+        Column {
+            Button(
+                onClick = {
+                    changeLanguage(
+                        context = context,
+                        language = "it",
+                    )
+                },
+            ) {
+                Text("Italian")
+            }
+            Button(
+                onClick = {
+                    changeLanguage(
+                        context = context,
+                        language = "en",
+                    )
+                },
+            ) {
+                Text("English")
+            }
+            Text(
+                stringResource(
+                    id = R.string.localized_greeting,
+                )
             )
-        )
+        }
     }
+}
+
+fun changeLanguage(
+    context: Context,
+    language: String,
+) {
+    val locale = Locale(language)
+    Locale.setDefault(locale)
+    val config = Configuration()
+    config.locale = locale
+    context.resources.updateConfiguration(config, context.resources.displayMetrics)
+    context.startActivity(Intent.makeRestartActivityTask((context as Activity).intent?.component))
 }
 
 // https://stackoverflow.com/questions/72483398/swipetodismess-swipetodismiss-overlays-on-the-next-list-item-when-swiped-how
@@ -626,7 +1091,7 @@ fun NavigationBar(
         title = {
             Text(
                 text = text,
-                color = Color.Black,
+                color = Black,
                 fontSize = 48.sp
             )
         },
@@ -636,7 +1101,7 @@ fun NavigationBar(
                 contentDescription = "Close",
 
                 modifier = Modifier.clickable(onClick = onIconClicked),
-                tint = Color.Black
+                tint = Black
             )
         },
         backgroundColor = Cyan,
@@ -701,7 +1166,7 @@ fun MainView() {
                 maxLines = 1,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
-                    textColor = Color.Black,
+                    textColor = Black,
                     backgroundColor = Transparent,
                     focusedIndicatorColor = Transparent,
                     unfocusedIndicatorColor = Transparent,
@@ -735,7 +1200,7 @@ fun AlignmentPaddingCheck() {
                     .padding(top = 200.dp)
                     .border(2.dp, color = Green),
                 thickness = 3.dp,
-                color = Color.Black
+                color = Black
             )
         }
     }
