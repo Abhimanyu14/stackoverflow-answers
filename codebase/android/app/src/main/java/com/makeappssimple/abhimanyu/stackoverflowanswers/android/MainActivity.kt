@@ -24,6 +24,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,6 +38,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -89,9 +92,13 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Settings
@@ -152,6 +159,7 @@ import androidx.compose.ui.input.pointer.isOutOfBounds
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChangeConsumed
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -169,7 +177,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
@@ -192,6 +202,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import com.google.android.material.button.MaterialButton
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -216,10 +227,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            StackOverflowAnswersTheme(
-            ) {
-                DefaultAppView()
-            }
+            DefaultAppView()
         }
     }
 
@@ -230,8 +238,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun DefaultAppView() {
-    StackOverflowAnswersTheme(
-    ) {
+    StackOverflowAnswersTheme() {
         // A surface container using the 'background' color from the theme
         Surface(
             color = MaterialTheme.colors.background,
@@ -251,19 +258,24 @@ fun MyAppView() {
     val navHostController = rememberNavController()
     NavHost(
         navController = navHostController,
-        startDestination = "first",
+        startDestination = "home",
     ) {
         composable(
-            route = "first",
+            route = "home",
         ) {
             Home(
                 navHostController = navHostController,
             )
         }
         composable(
-            route = "second",
+            route = "settings",
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "stackoverflow://answers/settings"
+                },
+            ),
         ) {
-            SimpleTextField(
+            Settings(
                 navHostController = navHostController,
             )
         }
@@ -274,10 +286,145 @@ fun MyAppView() {
 fun Home(
     navHostController: NavController,
 ) {
-    RtlLabelInOutlineTextField()
+    AnimatedFab()
+}
+
+@Composable
+fun Settings(
+    navHostController: NavController,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .background(Red)
+            .fillMaxSize(),
+    ) {
+        Button(
+            onClick = {
+                navHostController.navigateUp()
+            },
+        ) {
+            Text("Back To Home")
+        }
+    }
 }
 
 // New question code comes here
+
+// https://issuetracker.google.com/issues/236018302
+@OptIn(
+    ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class
+)
+@Composable
+fun AnimatedFab() {
+    var visibility by remember {
+        mutableStateOf(true)
+    }
+    Scaffold(
+        floatingActionButton = {
+            AnimatedVisibility(visible = visibility) {
+                Box {
+                    FloatingActionButton(
+                        modifier = Modifier.animateEnterExit(
+                            enter = slideInVertically(),
+                            exit = slideOutVertically()
+                        ),
+                        onClick = { }) {
+                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
+                    }
+                }
+            }
+        }
+    ) {
+        Button(
+            onClick = { visibility = !visibility },
+        ) {
+            Text(text = "Toggle")
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/72958203/outlinedtextfields-text-color-does-not-change-when-disabled
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun DisabledTextField() {
+    val interactionSource = remember { MutableInteractionSource() }
+    val colors = TextFieldDefaults.outlinedTextFieldColors()
+    val text = "+56"
+    BasicTextField(
+        value = text,
+        onValueChange = {},
+        interactionSource = interactionSource,
+        enabled = false,
+        singleLine = true,
+        textStyle = TextStyle.Default,
+        modifier = Modifier
+            .width(IntrinsicSize.Min)
+            .layoutId("country_code"),
+    ) {
+        TextFieldDefaults.OutlinedTextFieldDecorationBox(
+            value = "+56",
+            enabled = false,
+            singleLine = true,
+            innerTextField = it,
+            visualTransformation = VisualTransformation.None,
+            interactionSource = interactionSource,
+            colors = colors
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/72816899/using-toggle-in-a-password-field-in-jetpack-compose
+@Composable
+fun TogglePassword() {
+    val password = remember {
+        mutableStateOf("")
+    }
+    var revealPassword: MutableState<Boolean> = remember {
+        mutableStateOf(false)
+    } // To reveal the password with toggle
+    OutlinedTextField(
+        value = password.value,
+        onValueChange = { newText ->
+            password.value = newText
+        },
+        visualTransformation = if (revealPassword.value) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        },
+        trailingIcon = {
+            if (revealPassword.value) {
+                IconButton(
+                    onClick = {
+                        revealPassword.value = false
+                    },
+                ) {
+                    Icon(imageVector = Icons.Filled.Visibility, contentDescription = null)
+                }
+            } else {
+                IconButton(
+                    onClick = {
+                        revealPassword.value = true
+                    },
+                ) {
+
+                    Icon(imageVector = Icons.Filled.VisibilityOff, contentDescription = null)
+                }
+            }
+        },
+        label = {
+            Text(text = "Password")
+        },
+        singleLine = true,
+        leadingIcon = {
+            Icon(imageVector = Icons.Default.Lock, contentDescription = null)
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+    )
+}
 
 // https://stackoverflow.com/questions/72813452/how-to-change-label-direction-in-the-outlinedtextfield
 @Composable
@@ -298,7 +445,9 @@ fun RtlLabelInOutlineTextField() {
                 keyboardType = KeyboardType.NumberPassword,
                 imeAction = ImeAction.Next,
             ),
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
         )
     }
 }
@@ -388,9 +537,11 @@ fun ScrollableRowWithSpace() {
             .fillMaxWidth(),
     ) {
         item {
-            Spacer(modifier = Modifier
-                .background(White)
-                .width(screenWidth / 2))
+            Spacer(
+                modifier = Modifier
+                    .background(White)
+                    .width(screenWidth / 2)
+            )
         }
         items(list) {
             Text(
@@ -446,9 +597,12 @@ fun FoldInAndFoldOut() {
 // https://stackoverflow.com/questions/68655165/break-sentence-line-with-hyphen-if-word-is-too-long-in-android-jetpack-compose/72556451#72556451
 @Composable
 fun LongText() {
-    Text("This is a verrrryryryryreyeryeryeryerreyrfjdafbgkjabfdgbjabldfjbgjbakfdjbkgjbkadfbkgbbafdlbgboafdghbafdhlgalfdhgabdfgbfadhglfahgheyer long text".replace(
-        " ",
-        "\u00AD"))
+    Text(
+        "This is a verrrryryryryreyeryeryeryerreyrfjdafbgkjabfdgbjabldfjbgjbakfdjbkgjbkadfbkgbbafdlbgboafdghbafdhlgalfdhgabdfgbfadhglfahgheyer long text".replace(
+            " ",
+            "\u00AD"
+        )
+    )
 }
 
 // https://stackoverflow.com/questions/71476488/equal-width-elements-in-jetpack-compose-row
@@ -552,10 +706,12 @@ fun CenterTextWithFixedHeight() {
 // https://stackoverflow.com/questions/72546187/kotlin-jetpack-compose-center-text-in-column-inside-a-lazycolum
 @Composable
 fun CenterTextInColumn() {
-    Box(modifier = Modifier
-        .background(Color(0xFFf4f4f4))
-        .fillMaxSize()
-        .padding(top = 20.dp)) {
+    Box(
+        modifier = Modifier
+            .background(Color(0xFFf4f4f4))
+            .fillMaxSize()
+            .padding(top = 20.dp)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth(),
