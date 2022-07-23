@@ -26,6 +26,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -286,7 +287,7 @@ fun MyAppView() {
 fun Home(
     navHostController: NavController,
 ) {
-    AnimatedFab()
+    CircleBox()
 }
 
 @Composable
@@ -310,6 +311,34 @@ fun Settings(
 }
 
 // New question code comes here
+
+// https://stackoverflow.com/questions/73089220/how-to-give-a-box-a-circleshaped-stroke
+@Composable
+fun CircleBox() {
+    Row {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .border(
+                    border = BorderStroke(2.dp, Color.Red),
+                    shape = CircleShape,
+                ),
+        ) {
+
+        }
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .border(
+                    border = BorderStroke(2.dp, Color.Red),
+                    shape = CircleShape,
+                ),
+        ) {
+
+        }
+    }
+}
 
 // https://issuetracker.google.com/issues/236018302
 @OptIn(
