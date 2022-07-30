@@ -40,6 +40,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -106,6 +107,7 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -287,7 +289,7 @@ fun MyAppView() {
 fun Home(
     navHostController: NavController,
 ) {
-    CircleBox()
+    BorderRadiusView()
 }
 
 @Composable
@@ -311,6 +313,57 @@ fun Settings(
 }
 
 // New question code comes here
+
+// https://stackoverflow.com/questions/73175298/border-radius-is-not-changing-based-on-shape-when-user-click-on-it-jetpack-compo
+@Composable
+fun BorderRadiusView() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        val options = arrayListOf("First", "Second", "Third")
+        options.forEachIndexed { _, optionText ->
+            val interactionSource = remember { MutableInteractionSource() }
+            val isPressed by interactionSource.collectIsPressedAsState()
+            val backgroundColor = if (isPressed) Red else Green
+            val textColor = if (isPressed) Cyan else Black
+            val borderWidth = if (isPressed) 1.dp else 0.dp
+            val borderColor = if (isPressed) Black else White
+            val clickable = Modifier.clickable(
+                interactionSource = interactionSource,
+                indication = rememberRipple(true)
+            ) {
+                println("Item Click")
+            }
+            val shape = RoundedCornerShape(16.dp)
+            Surface(
+                modifier = Modifier
+                    .clip(shape)
+                    .border(
+                        width = borderWidth,
+                        color = borderColor,
+                        shape = shape,
+                    )
+                    .then(clickable),
+                // shape = shape,
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(backgroundColor)
+                        .padding(16.dp),
+                    text = optionText,
+                    // style = Typography.h3,
+                    fontWeight = FontWeight.Medium,
+                    color = textColor
+                )
+            }
+        }
+    }
+}
+
 
 // https://stackoverflow.com/questions/73089220/how-to-give-a-box-a-circleshaped-stroke
 @Composable
