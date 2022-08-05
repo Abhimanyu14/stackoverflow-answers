@@ -54,8 +54,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -86,6 +88,8 @@ import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.RadioButton
+import androidx.compose.material.RadioButtonDefaults
 import androidx.compose.material.Surface
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
@@ -289,7 +293,7 @@ fun MyAppView() {
 fun Home(
     navHostController: NavController,
 ) {
-    BorderRadiusView()
+    WidthTypes()
 }
 
 @Composable
@@ -313,6 +317,124 @@ fun Settings(
 }
 
 // New question code comes here
+
+// https://stackoverflow.com/questions/73250986/different-types-of-width-in-jetpack-compose
+@Composable
+fun WidthTypes() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceEvenly,
+    ) {
+        Box(
+            modifier = Modifier
+                .background(Red)
+                .height(40.dp)
+                .fillMaxWidth(0.9F),
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(Blue)
+                    .height(10.dp)
+                    .width(80.dp),
+            )
+        }
+        Box(
+            modifier = Modifier
+                .background(Red)
+                .height(40.dp)
+                .widthIn(min = 40.dp, max = 100.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(Blue)
+                    .height(10.dp)
+                    .width(80.dp),
+            )
+        }
+        Box(
+            modifier = Modifier
+                .background(Red)
+                .height(40.dp)
+                .requiredWidth(40.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(Blue)
+                    .height(10.dp)
+                    .width(80.dp),
+            )
+        }
+        Box(
+            modifier = Modifier
+                .background(Red)
+                .height(40.dp)
+                .widthIn(70.dp, 100.dp)
+                .width(40.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(Blue)
+                    .height(10.dp)
+                    .width(80.dp),
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/73248554/how-to-get-value-from-radio-group-in-jetpack-compose
+@Composable
+fun KindRadioGroupUsage() {
+    val kinds = listOf("Option 1", "Option 2", "Option 3")
+    val (selected, setSelected) = remember { mutableStateOf("") }
+    Column {
+        KindRadioGroup(
+            mItems = kinds,
+            selected, setSelected
+        )
+        Text(
+            text = "Selected Option : $selected",
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .requiredWidth(56.dp)
+                .width(56.dp)
+                .fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+fun KindRadioGroup(
+    mItems: List<String>,
+    selected: String,
+    setSelected: (selected: String) -> Unit,
+) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            mItems.forEach { item ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = selected == item,
+                        onClick = {
+                            setSelected(item)
+                        },
+                        enabled = true,
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = Color.Magenta
+                        )
+                    )
+                    Text(text = item, modifier = Modifier.padding(start = 8.dp))
+                }
+            }
+        }
+    }
+}
 
 // https://stackoverflow.com/questions/73175298/border-radius-is-not-changing-based-on-shape-when-user-click-on-it-jetpack-compo
 @Composable
