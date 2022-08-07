@@ -293,7 +293,7 @@ fun MyAppView() {
 fun Home(
     navHostController: NavController,
 ) {
-    WidthTypes()
+    ErrorCheck()
 }
 
 @Composable
@@ -317,6 +317,104 @@ fun Settings(
 }
 
 // New question code comes here
+
+// https://stackoverflow.com/questions/73268655/how-to-handle-error-on-outlined-edit-text-checking-regex-in-compose
+@Composable
+fun ErrorCheck() {
+    val (text, setText) = remember {
+        mutableStateOf("")
+    }
+    UserInputTextField(
+        fieldState = text,
+        onFieldChange = setText,
+        label = "Email",
+    )
+}
+
+@Composable
+fun UserInputTextField(
+    fieldState: String,
+    onFieldChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+) {
+    androidx.compose.material.OutlinedTextField(
+        value = fieldState,
+        onValueChange = {
+            onFieldChange(it)
+        },
+        isError = fieldState.contains("@"),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(
+                all = 16.dp,
+            ),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Color.Blue,
+            unfocusedBorderColor = Color.Black,
+        )
+    )
+}
+
+// https://stackoverflow.com/questions/73269574/state-hosting-in-jetpack-compose
+@Composable
+fun PulsePressure() {
+    var systolicTextFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue())
+    }
+    var isSystolicTextFieldValueError by rememberSaveable { mutableStateOf(false) }
+    var diastolicTextFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue())
+    }
+    var (isDiastolicTextFieldValueError, updateIsDiastolicTextFieldValueError) = rememberSaveable {
+        mutableStateOf(
+            false
+        )
+    }
+    InputWithUnitContainer(
+        systolicTextFieldValue,
+        isError = isSystolicTextFieldValueError,
+        updateIsError = updateIsDiastolicTextFieldValueError,
+        incrementTextFieldValue = {
+            systolicTextFieldValue = it
+        })
+    InputWithUnitContainer(
+        textFieldValue = diastolicTextFieldValue,
+        isError = isDiastolicTextFieldValueError,
+        updateIsError = updateIsDiastolicTextFieldValueError,
+        incrementTextFieldValue = {
+            diastolicTextFieldValue = it
+        }
+    )
+}
+
+@Composable
+fun InputWithUnitContainer(
+    textFieldValue: TextFieldValue,
+    isError: Boolean,
+    updateIsError: (Boolean) -> Unit,
+    incrementTextFieldValue: (TextFieldValue) -> Unit,
+) {
+    val maxLength = 4
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TextField(
+            value = textFieldValue,
+            singleLine = true,
+            onValueChange = {
+                if (it.text.length <= maxLength) {
+                    incrementTextFieldValue(it)
+                }
+                updateIsError(false)
+            },
+            isError = isError,
+            textStyle = TextStyle(),
+        )
+    }
+}
 
 // https://stackoverflow.com/questions/73250986/different-types-of-width-in-jetpack-compose
 @Composable
