@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -16,6 +17,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
@@ -27,6 +29,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -54,11 +57,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -70,6 +75,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
@@ -77,7 +83,9 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetState
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
@@ -117,6 +125,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -142,6 +151,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
@@ -153,6 +163,7 @@ import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
@@ -166,12 +177,16 @@ import androidx.compose.ui.input.pointer.isOutOfBounds
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChangeConsumed
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalTextToolbar
+import androidx.compose.ui.platform.TextToolbar
+import androidx.compose.ui.platform.TextToolbarStatus
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -180,6 +195,7 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -187,6 +203,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
@@ -198,6 +215,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
+import androidx.core.text.isDigitsOnly
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -290,13 +309,6 @@ fun MyAppView() {
 }
 
 @Composable
-fun Home(
-    navHostController: NavController,
-) {
-    ErrorCheck()
-}
-
-@Composable
 fun Settings(
     navHostController: NavController,
 ) {
@@ -316,7 +328,643 @@ fun Settings(
     }
 }
 
+@Composable
+fun Home(
+    navHostController: NavController,
+) {
+    CustomProgressbar()
+}
+
 // New question code comes here
+
+@Composable
+fun CustomProgressbar() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Black),
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+// https://stackoverflow.com/questions/69511201/animating-content-in-jetpack-compose
+@Composable
+fun AnimateColumnToRow() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+    ) {
+        Sample(AlignmentState.Rowed)
+        Sample(AlignmentState.Column)
+//        Row {
+//            ColourBox(
+//                color = Red,
+//            )
+//        }
+    }
+}
+
+enum class AlignmentState {
+    Rowed,
+    Column,
+}
+
+@Composable
+fun Sample(
+    state: AlignmentState,
+) {
+    // Dimensions of the static/stable box
+    val redWidth = 50
+    val redHeight = 50
+
+    // Animated Coordinates of the dynamic box
+    val blueX by animateDpAsState(targetValue = (if (state == AlignmentState.Rowed) (redWidth * 1.25f).roundToInt() else 0).dp)
+    val blueY by animateDpAsState(targetValue = (if (state == AlignmentState.Rowed) 0 else redHeight).dp)
+
+    Layout(
+        content = {
+            Box(
+                modifier = Modifier
+                    .height(redWidth.dp)
+                    .width(redHeight.dp)
+                    .background(Color.Red)
+            )
+            Box(
+                modifier = Modifier
+                    .height(50.dp)
+                    .width(50.dp)
+                    .background(Color.Red)
+            )
+        },
+    ) { measurables, constraints ->
+        val red = measurables[0].measure(constraints)
+        val blue = measurables[1].measure(constraints)
+
+        layout(
+            width = constraints.maxWidth,
+            height = constraints.maxHeight,
+        ) {
+            red.place(0, 0)
+            blue.place(blueX.value.roundToInt(), blueY.value.roundToInt())
+        }
+    }
+}
+
+@Composable
+private fun ColourBox(
+    color: Color,
+) {
+    Box(
+        modifier = Modifier
+            .background(
+                color
+            )
+            .size(
+                width = 40.dp,
+                height = 40.dp,
+            ),
+    )
+}
+
+// https://stackoverflow.com/questions/73352954/change-the-color-of-the-background-for-each-card-composable-in-a-lazy-list-jet
+@Composable
+fun ColourCards() {
+    val colors = listOf(Color.Blue, Color.Green, Color.Magenta, Color.Gray, Color.Cyan)
+    LazyColumn {
+        items(40) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 16.dp,
+                        vertical = 4.dp,
+                    )
+                    .background(colors[it % colors.size])
+                    .height(80.dp),
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/73352084/how-to-center-text-in-canvas-in-jetpack-compose/73352227#73352227
+@OptIn(ExperimentalTextApi::class)
+@Composable
+fun MyCenterTextInCanvas() {
+    val width: Dp = 200.dp
+    val height: Dp = 40.dp
+    val textMeasurer = rememberTextMeasurer()
+    Canvas(
+        modifier = Modifier
+            .background(Color.LightGray)
+            .wrapContentSize(
+                align = Alignment.Center,
+            )
+            .requiredSize(
+                width = width,
+                height = height,
+            ),
+    ) {
+        drawText(
+            textMeasurer = textMeasurer,
+            text = "Sample Text",
+            topLeft = Offset(
+                x = (width / 2).toPx(),
+                y = (height / 2).toPx(),
+            ),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/73310731/cannot-move-button-with-zindex-to-front-jetpack-compose
+@Composable
+fun ViewSelector() {
+    val (selected, setSelected) = remember {
+        mutableStateOf("Deals")
+    }
+
+    Row(
+        modifier = Modifier
+            .background(Color(0xFFEEEEEE))
+            .width(252.dp)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        ViewSelectorButton(
+            text = "Deals",
+            isSelected = selected == "Deals",
+            setSelected = setSelected,
+        )
+        ViewSelectorButton(
+            text = "Rewards",
+            isSelected = selected == "Rewards",
+            setSelected = setSelected,
+        )
+    }
+}
+
+@Composable
+fun ViewSelectorButton(
+    text: String,
+    isSelected: Boolean,
+    setSelected: (selected: String) -> Unit,
+) {
+    Button(
+        modifier = Modifier
+            .zIndex(
+                zIndex = if (isSelected) {
+                    1f
+                } else {
+                    1f
+                },
+            )
+            .width(110.dp)
+            .clip(
+                shape = RoundedCornerShape(8.dp),
+            ),
+        // .offset(x = (-15).dp),
+        onClick = {
+            setSelected(text)
+        },
+        elevation = ButtonDefaults.elevation(
+            defaultElevation = if (isSelected) {
+                4.dp
+            } else {
+                (-4).dp
+            },
+            pressedElevation = 0.dp,
+        ),
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = if (isSelected) {
+                Color(0xFFDDC0C0)
+            } else {
+                Color(0xFF6DB5CC)
+            },
+        )
+    ) {
+        Text(
+            text = text,
+            color = Black,
+        )
+    }
+}
+
+// region MEDIUM ARTICLE
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun BottomSheetSelectionDemo() {
+    val coroutineScope: CoroutineScope = rememberCoroutineScope()
+    val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+    )
+    val colors = arrayListOf("Red", "Green", "Blue", "White", "Black")
+    val (value, setValue) = remember {
+        mutableStateOf(colors[0])
+    }
+    val toggleModalBottomSheetState = {
+        coroutineScope.launch {
+            if (!modalBottomSheetState.isAnimationRunning) {
+                if (modalBottomSheetState.isVisible) {
+                    modalBottomSheetState.hide()
+                } else {
+                    modalBottomSheetState.show()
+                }
+            }
+        }
+    }
+
+    ModalBottomSheetLayout(
+        sheetState = modalBottomSheetState,
+        sheetContent = {
+            LazyColumn {
+                items(colors) {
+                    Text(
+                        text = it,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                setValue(it)
+                                toggleModalBottomSheetState()
+                            }
+                            .padding(
+                                horizontal = 16.dp,
+                                vertical = 12.dp,
+                            ),
+                    )
+                }
+            }
+        },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            MyReadOnlyTextField(
+                value = value,
+                label = "Select a color",
+                onClick = {
+                    toggleModalBottomSheetState()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 16.dp,
+                        vertical = 4.dp,
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
+fun MyReadOnlyTextField(
+    modifier: Modifier = Modifier,
+    value: String,
+    label: String,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = modifier,
+    ) {
+        androidx.compose.material3.OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            modifier = Modifier
+                .fillMaxWidth(),
+            label = {
+                Text(
+                    text = label,
+                )
+            },
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .alpha(0f)
+                .clickable(
+                    onClick = onClick,
+                ),
+        )
+    }
+}
+// endregion
+
+// https://stackoverflow.com/questions/73284087/how-to-show-pin-field-with-custom-drawables
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CustomTextFieldVisual1() {
+    var text by remember { mutableStateOf("") }
+    val interactionSource = remember { MutableInteractionSource() }
+    val enabled = true
+    val singleLine = true
+
+    var isError by remember { mutableStateOf(false) }
+    var circleColor by remember { mutableStateOf(Gray) }
+
+    val colors = TextFieldDefaults.outlinedTextFieldColors(
+        focusedBorderColor = circleColor,
+        unfocusedBorderColor = circleColor
+    )
+
+    BasicTextField(
+        value = text,
+        onValueChange = {
+            if (it.length <= 1) {
+                text = it
+                if (it.isDigitsOnly()) {
+                    circleColor = Green
+                    isError = false
+                }
+            }
+            if (it.isEmpty()) isError = true
+        },
+        interactionSource = interactionSource,
+        textStyle = TextStyle.Default.copy(textAlign = TextAlign.Center, fontSize = 16.sp),
+        enabled = enabled,
+        singleLine = singleLine,
+        modifier = Modifier
+            .width(50.dp)
+            .height(50.dp)
+    ) {
+        TextFieldDefaults.OutlinedTextFieldDecorationBox(
+            value = text,
+            visualTransformation = VisualTransformation.None,
+            innerTextField = it,
+            singleLine = singleLine,
+            enabled = enabled,
+            interactionSource = interactionSource,
+            contentPadding = TextFieldDefaults.textFieldWithoutLabelPadding(
+                start = 0.dp, end = 0.dp, top = 0.dp, bottom = 0.dp
+            ),
+            colors = colors,
+            border = {
+                TextFieldDefaults.BorderBox(
+                    enabled,
+                    isError,
+                    interactionSource,
+                    colors,
+                    shape = CircleShape,
+                    focusedBorderThickness = 3.dp,
+                    unfocusedBorderThickness = 3.dp
+                )
+            }
+        )
+    }
+}
+
+object EmptyTextToolbar : TextToolbar {
+    override val status: TextToolbarStatus = TextToolbarStatus.Hidden
+
+    override fun hide() {}
+
+    override fun showMenu(
+        rect: Rect,
+        onCopyRequested: (() -> Unit)?,
+        onPasteRequested: (() -> Unit)?,
+        onCutRequested: (() -> Unit)?,
+        onSelectAllRequested: (() -> Unit)?,
+    ) {
+    }
+}
+
+@Composable
+fun CustomTextFieldVisual() {
+    val focusManager = LocalFocusManager.current
+    val (text, setText) = remember {
+        mutableStateOf(TextFieldValue(""))
+    }
+    val charLimit = 6
+
+    LaunchedEffect(
+        key1 = text,
+    ) {
+        if (text.text.length == charLimit) {
+            focusManager.clearFocus()
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .width(
+                    200.dp,
+                ),
+        ) {
+            CompositionLocalProvider(
+                LocalTextToolbar provides EmptyTextToolbar
+            ) {
+                BasicTextField(
+                    value = text,
+                    onValueChange = { newValue ->
+                        if (newValue.text.length <= 6) {
+                            setText(
+                                if (newValue.selection.length > 0) {
+                                    newValue.copy(
+                                        selection = text.selection,
+                                    )
+                                } else {
+                                    newValue
+                                }
+                            )
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.NumberPassword,
+                        imeAction = ImeAction.Done,
+                    ),
+                    textStyle = TextStyle(
+                        color = Transparent,
+                    ),
+                    readOnly = true,
+                    cursorBrush = SolidColor(Transparent),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .fillMaxWidth()
+                        .background(Color(0xFFEEEEEE))
+                        .padding(16.dp),
+                )
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .fillMaxWidth()
+                    .background(Color(0xFFEEEEEE))
+                    .padding(16.dp),
+            ) {
+                for (i in 0 until charLimit) {
+                    if (i < text.text.length) {
+                        Dot(Green)
+                    } else {
+                        Dot(Red)
+                    }
+                }
+            }
+        }
+        Text(
+            text = "Entered Text : ${text.text}",
+            modifier = Modifier
+                .padding(
+                    all = 16.dp,
+                ),
+        )
+    }
+}
+
+@Composable
+fun Dot(
+    color: Color,
+) {
+    Box(
+        modifier = Modifier
+            .requiredSize(
+                size = 16.dp,
+            )
+            .background(
+                color = color,
+                shape = CircleShape,
+            ),
+    )
+}
+
+
+// https://stackoverflow.com/questions/73280574/how-to-set-a-outlinedtextfield-occupy-the-remaining-space-jetpack-compose
+@Composable
+fun SmallAppBar() {
+    androidx.compose.material3.MaterialTheme {
+        SmallTopAppBar(
+            title = {
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth(1f) // Here is the issue.
+                        .padding(2.dp),
+                    value = "",
+                    onValueChange = {},
+                    maxLines = 1,
+                    singleLine = true,
+                )
+            },
+            navigationIcon = {
+                IconButton(
+                    onClick = {},
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowBack,
+                        contentDescription = null,
+                    )
+                }
+            },
+            actions = {
+//            OutlinedTextField(
+//                modifier = Modifier
+//                    .fillMaxWidth(1f) // Here is the issue.
+//                    .padding(2.dp),
+//                value = "",
+//                onValueChange = {},
+//                maxLines = 1,
+//                singleLine = true,
+//            )
+            }
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/73276689/vertical-scroll-affecting-the-modifier-weight-in-jetpack-compose
+@Composable
+fun ScrollModifier() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(10.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(Color.Blue)
+                .height(200.dp),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(Color.Red)
+                .height(200.dp),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(Color.Cyan)
+                .height(200.dp),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(Color.Green)
+                .height(200.dp),
+        )
+        Spacer(
+            modifier = Modifier.weight(1.0F),
+        )
+        Button(
+            onClick = {},
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Button")
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/73276491/handle-back-button-click-when-keyboard-is-open-in-jetpack-compose
+@Composable
+fun BackHandlingWhenKeyboardOpen() {
+    val focusManager = LocalFocusManager.current
+    BackHandler(
+        enabled = true,
+    ) {
+        // This is not triggered when keyboard is open
+        Log.d("TEST_TAG", "Back Handler")
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+            ) {
+                focusManager.clearFocus()
+            }
+    ) {
+        TextField(
+            value = "",
+            onValueChange = {},
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusManager.clearFocus()
+                },
+            ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Done,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        )
+    }
+}
 
 // https://stackoverflow.com/questions/73268655/how-to-handle-error-on-outlined-edit-text-checking-regex-in-compose
 @Composable
@@ -583,7 +1231,6 @@ fun BorderRadiusView() {
         }
     }
 }
-
 
 // https://stackoverflow.com/questions/73089220/how-to-give-a-box-a-circleshaped-stroke
 @Composable
