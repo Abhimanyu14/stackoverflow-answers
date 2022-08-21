@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -13,6 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -37,11 +39,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.GestureCancellationException
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.PressGestureScope
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -52,11 +56,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
@@ -88,6 +95,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.MaterialTheme
@@ -99,6 +107,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.RadioButton
 import androidx.compose.material.RadioButtonDefaults
 import androidx.compose.material.Surface
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -108,18 +117,23 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material.swipeable
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -146,24 +160,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.graphics.Color.Companion.Cyan
+import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
@@ -175,12 +200,14 @@ import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.consumeDownChange
 import androidx.compose.ui.input.pointer.isOutOfBounds
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.input.pointer.positionChangeConsumed
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -211,6 +238,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
@@ -332,10 +360,854 @@ fun Settings(
 fun Home(
     navHostController: NavController,
 ) {
-    CustomProgressbar()
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .background(Color(0xFFEEEEEE))
+            .fillMaxSize(),
+    ) {
+        SwipeButtonSample()
+    }
 }
 
 // New question code comes here
+
+// Number Picker carousel
+
+// Smiley Rating bar
+
+
+// region Swipe Button
+@Composable
+fun SwipeButtonSample() {
+    val coroutineScope = rememberCoroutineScope()
+    val (isComplete, setIsComplete) = remember {
+        mutableStateOf(false)
+    }
+
+    SwipeButton(
+        text = "SAVE",
+        isComplete = isComplete,
+        onSwipe = {
+            coroutineScope.launch {
+                delay(2000)
+                setIsComplete(true)
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun SwipeButton(
+    text: String,
+    isComplete: Boolean,
+    doneImageVector: ImageVector = Icons.Rounded.Done,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color(0xFF03A9F4),
+    onSwipe: () -> Unit,
+) {
+    val width = 200.dp
+    val widthInPx = with(LocalDensity.current) {
+        width.toPx()
+    }
+    val anchors = mapOf(
+        0F to 0,
+        widthInPx to 1,
+    )
+    val swipeableState = rememberSwipeableState(0)
+    val (swipeComplete, setSwipeComplete) = remember {
+        mutableStateOf(false)
+    }
+    val alpha: Float by animateFloatAsState(
+        targetValue = if (swipeComplete) {
+            0F
+        } else {
+            1F
+        },
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = LinearEasing,
+        )
+    )
+
+    LaunchedEffect(
+        key1 = swipeableState.currentValue,
+    ) {
+        if (swipeableState.currentValue == 1) {
+            setSwipeComplete(true)
+            onSwipe()
+        }
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .padding(
+                horizontal = 48.dp,
+                vertical = 16.dp,
+            )
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .animateContentSize()
+            .then(
+                if (swipeComplete) {
+                    Modifier.width(64.dp)
+                } else {
+                    Modifier.fillMaxWidth()
+                }
+            )
+            .requiredHeight(64.dp),
+    ) {
+        SwipeIndicator(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .alpha(alpha)
+                .offset {
+                    IntOffset(swipeableState.offset.value.roundToInt(), 0)
+                }
+                .swipeable(
+                    state = swipeableState,
+                    anchors = anchors,
+                    thresholds = { _, _ ->
+                        FractionalThreshold(0.3F)
+                    },
+                    orientation = Orientation.Horizontal,
+                ),
+            backgroundColor = backgroundColor,
+        )
+        SwipeText(text, alpha, swipeableState)
+        SwipeProgressIndicator(swipeComplete, isComplete)
+        AnimatedVisibility(
+            visible = isComplete,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Icon(
+                imageVector = doneImageVector,
+                contentDescription = null,
+                tint = White,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(44.dp),
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun SwipeText(
+    text: String,
+    alpha: Float,
+    swipeableState: SwipeableState<Int>,
+) {
+    Text(
+        text = text,
+        color = White,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(alpha)
+            .padding(
+                horizontal = 80.dp,
+            )
+            .offset {
+                IntOffset(swipeableState.offset.value.roundToInt(), 0)
+            },
+    )
+}
+
+@Composable
+private fun SwipeProgressIndicator(
+    swipeComplete: Boolean,
+    isComplete: Boolean,
+) {
+    AnimatedVisibility(
+        visible = swipeComplete && !isComplete,
+    ) {
+        CircularProgressIndicator(
+            color = White,
+            strokeWidth = 1.dp,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp),
+        )
+    }
+}
+
+@Composable
+fun SwipeIndicator(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(2.dp)
+            .clip(CircleShape)
+            .aspectRatio(
+                ratio = 1.0F,
+                matchHeightConstraintsFirst = true,
+            )
+            .background(Color.White),
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.ChevronRight,
+            contentDescription = null,
+            tint = backgroundColor,
+            modifier = Modifier.size(36.dp),
+        )
+    }
+}
+// endregion
+
+// region MEDIUM - Page Indicator
+// https://stackoverflow.com/questions/73416996/jetpack-compose-animated-pager-dots-indicator
+@Composable
+fun PageIndicatorSample() {
+    val numberOfPages = 3
+    val (selectedPage, setSelectedPage) = remember {
+        mutableStateOf(0)
+    }
+
+    // NEVER use this, this is just for example
+    LaunchedEffect(
+        key1 = selectedPage,
+    ) {
+        delay(3000)
+        setSelectedPage((selectedPage + 1) % numberOfPages)
+    }
+
+    PageIndicator(
+        numberOfPages = numberOfPages,
+        selectedPage = selectedPage,
+        defaultRadius = 60.dp,
+        selectedLength = 120.dp,
+        space = 30.dp,
+        animationDurationInMillis = 1000,
+    )
+}
+
+@Composable
+fun PageIndicator(
+    numberOfPages: Int,
+    modifier: Modifier = Modifier,
+    selectedPage: Int = 0,
+    selectedColor: Color = Color(0xFF3E6383),
+    defaultColor: Color = Color.LightGray,
+    defaultRadius: Dp = 20.dp,
+    selectedLength: Dp = 60.dp,
+    space: Dp = 30.dp,
+    animationDurationInMillis: Int = 300,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(space),
+        modifier = modifier,
+    ) {
+        for (i in 0 until numberOfPages) {
+            val isSelected = i == selectedPage
+            PageIndicatorView(
+                isSelected = isSelected,
+                selectedColor = selectedColor,
+                defaultColor = defaultColor,
+                defaultRadius = defaultRadius,
+                selectedLength = selectedLength,
+                animationDurationInMillis = animationDurationInMillis,
+            )
+        }
+    }
+}
+
+@Composable
+fun PageIndicatorView(
+    isSelected: Boolean,
+    selectedColor: Color,
+    defaultColor: Color,
+    defaultRadius: Dp,
+    selectedLength: Dp,
+    animationDurationInMillis: Int,
+    modifier: Modifier = Modifier,
+) {
+    val color: Color by animateColorAsState(
+        targetValue = if (isSelected) {
+            selectedColor
+        } else {
+            defaultColor
+        },
+        animationSpec = tween(
+            durationMillis = animationDurationInMillis,
+        )
+    )
+    val width: Dp by animateDpAsState(
+        targetValue = if (isSelected) {
+            selectedLength
+        } else {
+            defaultRadius
+        },
+        animationSpec = tween(
+            durationMillis = animationDurationInMillis,
+        )
+    )
+
+    Canvas(
+        modifier = modifier
+            .size(
+                width = width,
+                height = defaultRadius,
+            ),
+    ) {
+        drawRoundRect(
+            color = color,
+            topLeft = Offset.Zero,
+            size = Size(
+                width = width.toPx(),
+                height = defaultRadius.toPx(),
+            ),
+            cornerRadius = CornerRadius(
+                x = defaultRadius.toPx(),
+                y = defaultRadius.toPx(),
+            ),
+        )
+    }
+}
+// endregion
+
+// https://stackoverflow.com/questions/73425959/how-can-i-place-an-icon-on-the-right-of-screen-without-padding-in-jetpack-compos
+@Composable
+fun IconPadding() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Hello", Modifier.weight(1f))
+            Text("World")
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Hello", Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.Filled.Edit,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .clickable(
+                        onClick = {},
+                    )
+                    .indication(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = rememberRipple(),
+                    ),
+            )
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/73425741/why-cant-the-height-property-of-modifier-be-written-in-jetpack-compose
+@Composable
+fun OrderOfModifiers() {
+    val modifier = Modifier
+        .fillMaxWidth()
+        .height(30.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        Spacer(
+            modifier = modifier
+                .height(5.dp)
+                .background(DarkGray),
+        )
+        Spacer(
+            modifier = Modifier
+                .height(5.dp)
+                .then(modifier)
+                .background(Cyan),
+        )
+    }
+}
+
+@Composable
+fun PathPercent() {
+    Canvas(
+        modifier = Modifier
+            .size(300.dp, 300.dp)
+            .background(Red),
+    ) {
+        val largePath = Path().apply {
+            addRect(Rect(Offset.Zero, Size(300.dp.toPx(), 300.dp.toPx())))
+        }
+        val smallPath = Path().apply {
+            addOval(Rect(Offset.Zero, Size(200.dp.toPx(), 200.dp.toPx())))
+        }
+        val pathToDraw = Path.combine(
+            operation = PathOperation.Difference,
+            path1 = largePath,
+            path2 = smallPath,
+        )
+        drawPath(
+            path = pathToDraw,
+            color = Black,
+            alpha = 1F,
+        )
+    }
+}
+
+// region MEDIUM - Scratch card
+@Composable
+fun ScratchCardSample() {
+    val cardPath = Path().apply {
+        addOval(
+            oval = Rect(
+                Offset.Zero,
+                Size(
+                    width = 350.0F,
+                    height = 350.0F,
+                )
+            )
+        )
+    }
+    ScratchCard(
+        cardPath = cardPath,
+    )
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun ScratchCard(
+    cardPath: Path? = null,
+    pointerWidth: Float = 40.0F,
+    percentToClear: Float = 0.8F,
+) {
+    val cardSide: Dp = if (cardPath != null) {
+        max(cardPath.getBounds().width.dp, cardPath.getBounds().height.dp)
+    } else {
+        250.dp
+    }
+    val scratchCardPath = if (cardPath != null) {
+        cardPath
+    } else {
+        val defaultCardSideInPx = with(
+            receiver = LocalDensity.current,
+        ) {
+            cardSide.toPx()
+        }
+        Path().apply {
+            addRect(
+                rect = Rect(
+                    offset = Offset.Zero,
+                    size = Size(
+                        width = defaultCardSideInPx,
+                        height = defaultCardSideInPx,
+                    )
+                ),
+            )
+        }
+    }
+    var scratchedPath: Path by remember {
+        mutableStateOf(
+            value = Path(),
+        )
+    }
+    val pathToDraw = Path.combine(
+        operation = PathOperation.Difference,
+        path1 = scratchCardPath,
+        path2 = scratchedPath,
+    )
+    val pointerModifier = Modifier
+        .pointerInteropFilter { motionEvent ->
+            when (motionEvent.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                    scratchedPath.addOval(
+                        oval = Rect(
+                            center = Offset(
+                                x = motionEvent.x,
+                                y = motionEvent.y,
+                            ),
+                            radius = pointerWidth,
+                        ),
+                    )
+                    scratchedPath = Path().apply {
+                        addPath(scratchedPath)
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+
+    Canvas(
+        modifier = Modifier
+            .background(Red)
+            .size(
+                width = cardSide,
+                height = cardSide,
+            )
+            .then(
+                other = pointerModifier,
+            ),
+    ) {
+        drawPath(
+            path = pathToDraw,
+            color = Black,
+            alpha = 1F,
+        )
+    }
+}
+// endregion
+
+// region Drawing Board
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun DrawingBoard() {
+    var pointerPosition: Offset? by remember {
+        mutableStateOf(null)
+    }
+    var motionEvent: MotionEvent? by remember {
+        mutableStateOf(null)
+    }
+    val scratchedPath: Path by remember {
+        mutableStateOf(Path().apply {
+        })
+    }
+    val cardSide = 250.dp
+    val scratchWidth = 40.0F
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        Text("Position X = ${pointerPosition?.x} Y = ${pointerPosition?.y}")
+        Text("${scratchedPath.isConvex}")
+        Text("${scratchedPath.isEmpty}")
+        Canvas(
+            modifier = Modifier
+                .background(LightGray)
+                .size(
+                    width = cardSide,
+                    height = cardSide,
+                )
+        ) {
+            val scratchCardPath = Path().apply {
+                addRect(Rect(Offset.Zero, Offset(cardSide.toPx(), cardSide.toPx())))
+            }
+
+            val pathToDraw = Path.combine(
+                operation = PathOperation.Difference,
+                path1 = scratchCardPath,
+                path2 = scratchedPath,
+            )
+            drawPath(
+                path = pathToDraw,
+                color = Black,
+                alpha = 1F,
+            )
+        }
+        Canvas(
+            modifier = Modifier
+                .background(LightGray)
+                .size(
+                    width = cardSide,
+                    height = cardSide,
+                )
+                .pointerInteropFilter {
+                    when (it.action) {
+                        MotionEvent.ACTION_DOWN -> {
+                            pointerPosition = Offset(
+                                x = it.x,
+                                y = it.y,
+                            )
+                            motionEvent = it
+                            scratchedPath.moveTo(it.x, it.y)
+                            true
+                        }
+                        MotionEvent.ACTION_MOVE -> {
+                            pointerPosition = Offset(
+                                x = it.x,
+                                y = it.y,
+                            )
+                            motionEvent = it
+                            scratchedPath.addOval(
+                                oval = Rect(
+                                    center = Offset(
+                                        x = it.x,
+                                        y = it.y,
+                                    ),
+                                    radius = scratchWidth,
+                                ),
+                            )
+                            true
+                        }
+                        else -> false
+                    }
+                },
+        ) {
+            val scratchCardPath = Path().apply {
+                addRect(Rect(Offset.Zero, Offset(cardSide.toPx(), cardSide.toPx())))
+            }
+
+            motionEvent?.let {
+                clipPath(scratchCardPath) {
+                    drawPath(
+                        path = scratchedPath,
+                        color = Green,
+                        alpha = 1F,
+                    )
+                }
+            }
+        }
+    }
+}
+// endregion
+
+@Composable
+fun PathDiff() {
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        val rect1 = Path().apply {
+            addRect(Rect(Offset.Zero, Offset(400.0F, 400.0F)))
+        }
+        val rect2 = Path().apply {
+            moveTo(100.0F, 100.0F)
+            lineTo(200.0F, 100.0F)
+            lineTo(200.0F, 200.0F)
+        }
+        val newPath = Path.combine(
+            operation = PathOperation.Difference,
+            path1 = rect1,
+            path2 = rect2,
+        )
+        drawPath(
+            path = rect2,
+            color = Black,
+            alpha = 1F,
+            style = Stroke(
+                width = 20.0F,
+                cap = StrokeCap.Round,
+            ),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/73389254/jetpackcompose-modifier-fillmaxheight-doesnt-work-in-card
+@Composable
+fun List(
+    modifier: Modifier = Modifier,
+) {
+    val testList = listOf("test1", "test2")
+
+    LazyColumn(
+        modifier = modifier,
+    ) {
+        items(
+            items = testList
+        ) { testText ->
+            Card(
+                elevation = 10.dp,
+                modifier = modifier
+                    .padding(
+                        top = 30.dp,
+                        start = 30.dp,
+                        end = 30.dp,
+                        bottom = 30.dp,
+                    )
+                    .border(
+                        width = 0.8.dp,
+                        color = Color.DarkGray,
+                        shape = RectangleShape,
+                    )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .requiredHeight(200.dp),
+                ) {
+                    Text(
+                        text = testText,
+                        fontSize = 30.sp,
+                        modifier =
+                        Modifier
+                            .padding(
+                                horizontal = 15.dp,
+                                vertical = 20.dp,
+                            ),
+                    )
+                    Divider(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(0.5.dp), // <-  It doesn't work.
+                        color = Color.Black,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun List1(
+    modifier: Modifier = Modifier,
+) {
+    val testList = listOf("test1", "test2")
+
+    LazyColumn(
+        modifier = modifier,
+    ) {
+        items(
+            items = testList
+        ) { testText ->
+            Card(
+                elevation = 10.dp,
+                modifier = modifier
+                    .fillMaxSize() // It doesn't work.
+                    .padding(
+                        top = 30.dp,
+                        start = 30.dp,
+                        end = 30.dp,
+                        bottom = 30.dp,
+                    )
+                    .border(
+                        width = 0.8.dp,
+                        color = Color.DarkGray,
+                        shape = RectangleShape,
+                    )
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .heightIn(100.dp),
+                    // .background(Cyan),
+                ) {
+                    Text(
+                        text = testText,
+                        fontSize = 30.sp,
+                        modifier =
+                        Modifier
+                            // .background(LightGray)
+                            .padding(
+                                horizontal = 15.dp,
+                                vertical = 20.dp,
+                            ),
+                    )
+                    Divider(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(0.5.dp), // <-  It doesn't work.
+                        color = Color.Black,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ScaledText() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .background(Cyan)
+            .requiredSize(
+                200.dp,
+                200.dp,
+            ),
+    ) {
+        Text(
+            text = "Sample Text",
+            fontSize = 48.sp,
+            maxLines = 1,
+            modifier = Modifier
+                .scale(
+                    200.0F,
+                    200.0F
+                ),
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/73374838/i-want-to-ask-on-how-to-perform-this-using-an-onclick-event-in-jetpack-compose
+@Composable
+fun ClickSample() {
+    val (count, setCount) = remember {
+        mutableStateOf(0)
+    }
+    Button(
+        onClick = {
+
+        },
+    ) {
+        Text("Add")
+    }
+}
+
+// https://stackoverflow.com/questions/73364342/jetpack-compose-canvas-clip-to-rounded-arc-shape
+@Composable
+fun CanvasWithArc() {
+    Canvas(
+        modifier = Modifier
+            .background(Black)
+            .fillMaxSize(),
+    ) {
+        val path = Path().apply {
+            this.addArc(
+                oval = Rect(
+                    topLeft = Offset(
+                        x = 0F,
+                        y = 0F,
+                    ),
+                    bottomRight = Offset(
+                        x = size.width,
+                        y = size.height,
+                    )
+                ),
+                startAngleDegrees = 0F,
+                sweepAngleDegrees = 240F,
+            )
+        }
+        clipPath(
+            path = path,
+        ) {
+            // following two drawArc could be replaced w/ drawCircle
+            drawArc(
+                color = Color.Magenta.copy(alpha = 0.2F),
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(
+                    width = 2.0F,
+                    cap = StrokeCap.Round,
+                ),
+                size = Size(100.0F, 100.0F),
+                topLeft = Offset.Zero
+            )
+
+            drawArc(
+                color = Color.Cyan,
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(
+                    width = 2.0F,
+                    cap = StrokeCap.Round
+                ),
+                size = Size(100.0F, 100.0F),
+                topLeft = Offset.Zero
+            )
+        }
+    }
+}
 
 @Composable
 fun CustomProgressbar() {
@@ -431,7 +1303,7 @@ private fun ColourBox(
 // https://stackoverflow.com/questions/73352954/change-the-color-of-the-background-for-each-card-composable-in-a-lazy-list-jet
 @Composable
 fun ColourCards() {
-    val colors = listOf(Color.Blue, Color.Green, Color.Magenta, Color.Gray, Color.Cyan)
+    val colors = listOf(Color.Blue, Green, Color.Magenta, Color.Gray, Color.Cyan)
     LazyColumn {
         items(40) {
             Box(
@@ -551,7 +1423,7 @@ fun ViewSelectorButton(
     }
 }
 
-// region MEDIUM ARTICLE
+// region MEDIUM ARTICLE - BottomSheetSelectionDemo
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BottomSheetSelectionDemo() {
@@ -911,7 +1783,7 @@ fun ScrollModifier() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .background(Color.Green)
+                .background(Green)
                 .height(200.dp),
         )
         Spacer(
@@ -1707,7 +2579,6 @@ fun CenterTextInColumn() {
     }
 }
 
-
 // https://stackoverflow.com/questions/72544313/kotlin-jetpack-compose-divider-before-my-first-item-with-lazycolumn-and-surface
 @Composable
 fun DividerCard() {
@@ -2163,7 +3034,6 @@ fun NonSwipeableBottomSheet() {
     }
 }
 
-
 // https://stackoverflow.com/questions/72099001/show-jetpack-compose-widget-only-after-its-fully-populated
 @Composable
 fun Parent(
@@ -2184,7 +3054,6 @@ fun LoadAfterComplete() {
         }
     }
 }
-
 
 // https://stackoverflow.com/questions/72014895/how-do-i-make-topappbar-background-same-as-rest-of-the-activity-ui
 @Composable
@@ -2282,7 +3151,6 @@ fun MainView() {
     }
 }
 
-
 // https://stackoverflow.com/questions/71996179/why-padding-from-top-gets-different-length-value-based-on-elements-alignment
 @Composable
 fun AlignmentPaddingCheck() {
@@ -2355,7 +3223,6 @@ fun DropdownExample() {
 //        }
     }
 }
-
 
 // https://stackoverflow.com/questions/71957948/how-to-center-the-middle-child-in-a-compose-row-and-make-it-responsive
 @Composable
@@ -2464,7 +3331,6 @@ fun MiddleItemRow(
         )
     }*/
 }
-
 
 // https://stackoverflow.com/questions/71927791/android-jetpack-compose-how-to-make-text-utilize-complete-row-space-and-break-t
 @Composable
@@ -2633,7 +3499,6 @@ fun SplashScreen() {
         }
     }
 }
-
 
 // https://stackoverflow.com/questions/71741634/observeasstate-on-viewmodel-livedata-dont-trigger-recomposition-in-compose
 @Composable
@@ -2950,7 +3815,6 @@ private fun ShowListItems(title: String, list: List<String>) {
     }
 }
 
-
 // https://stackoverflow.com/questions/71141501/cant-animate-fab-visible-in-m3-scaffold
 @OptIn(
     ExperimentalAnimationApi::class,
@@ -2984,7 +3848,6 @@ fun FabHide() {
     }
 }
 
-
 // https://stackoverflow.com/questions/71126264/lazy-vertical-grid-workaround-in-compose#71126264
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -3000,7 +3863,6 @@ fun VerticalGrid() {
         }
     }*/
 }
-
 
 // https://stackoverflow.com/questions/71105292/how-to-communicate-with-server-in-a-jetpack-compose-app?noredirect=1#comment125727901_71105292
 suspend fun getServerMessage(): String {
@@ -3268,7 +4130,6 @@ fun TextInBorder() {
 
 }
 
-
 // https://stackoverflow.com/questions/70015237/divider-is-not-showing-in-the-custom-jetpack-compose-textfield#70015237
 @Composable
 fun EditProfileScreen() {
@@ -3358,7 +4219,6 @@ private fun CountryCodeAndMobileNumber(
         }
     }
 }
-
 
 @Composable
 fun InputTextField(
@@ -3475,7 +4335,6 @@ fun FocusableText() {
         )
     }
 }
-
 
 // https://stackoverflow.com/questions/70009088/sliding-an-item-next-to-the-expanding-animation
 @ExperimentalAnimationApi
@@ -4031,7 +4890,6 @@ fun RememberDemo() {
     }
 }
 
-
 // https://stackoverflow.com/questions/69862078/how-change-outlinetextfield-border-width-in-android-jetpack-compose
 @Composable
 fun TextFieldOutlineWidth() {
@@ -4492,7 +5350,6 @@ fun ExampleScreen(
 }
 // END
 
-
 // https://stackoverflow.com/questions/69766087/how-to-apply-materials-responsive-layout-grid-to-android-compose
 @Composable
 fun ButtonInGrid() {
@@ -4712,7 +5569,6 @@ fun GradientColor() {
     }
 }
 // END
-
 
 @Composable
 fun TextFieldWeight() {
