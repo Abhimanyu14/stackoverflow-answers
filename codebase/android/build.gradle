@@ -77,10 +77,10 @@ buildscript {
         lifecycleComponentsVersion = "2.2.0"
 
         // Lifecycle runtime
-        lifecycleRuntimeVersion = "2.5.0-rc01"
+        lifecycleRuntimeVersion = "2.6.0-alpha01"
 
         // Kotlin coroutines
-        kotlinCoroutinesVersion = "1.6.2"
+        kotlinCoroutinesVersion = "1.6.4"
 
         // Kotlin coroutines play services
         kotlinCoroutinesPlayServicesVersion = "1.6.2"

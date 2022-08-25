@@ -1,16 +1,21 @@
 package com.makeappssimple.abhimanyu.stackoverflowanswers.android
 
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -50,6 +55,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -94,7 +100,10 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalTextStyle
@@ -163,6 +172,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
@@ -181,6 +191,8 @@ import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.RectangleShape
@@ -188,6 +200,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -257,6 +270,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -273,6 +288,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import java.util.Locale
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -336,6 +352,7 @@ fun MyAppView() {
     }
 }
 
+
 @Composable
 fun Settings(
     navHostController: NavController,
@@ -363,19 +380,405 @@ fun Home(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .background(Color(0xFFEEEEEE))
+            .background(Color(0xFFFFFFFF))
             .fillMaxSize(),
     ) {
-        SwipeButtonSample()
+        EmojiViewSample()
     }
 }
 
 // New question code comes here
 
+// Emoji View
+@Composable
+fun EmojiViewSample() {
+    EmojiView("🧑‍🌾")
+}
+
+@Composable
+fun EmojiView(
+    emoji: String,
+) {
+    AndroidView(
+        factory = { context ->
+            AppCompatTextView(context).apply {
+                setTextColor(Black.toArgb())
+                text = emoji ?: "😟"
+                textSize = 48.0F
+                textAlignment = View.TEXT_ALIGNMENT_CENTER
+            }
+        },
+        update = {
+            it.apply {
+                text = emoji ?: "😟"
+            }
+        },
+    )
+}
+
+// Debounce click events
+
 // Number Picker carousel
+// Emoji Picker
 
-// Smiley Rating bar
+// https://stackoverflow.com/questions/73462737/classifier-context-does-not-have-a-companion-object-and-thus-must-be-initiali
+@Composable
+fun AppNotice() {
+    val intent = Intent(Intent.ACTION_GET_CONTENT)
+    intent.type = "*/*";
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activityResult ->
+            if (activityResult.resultCode == RESULT_OK) {
+                Log.d("appDebug", "oky")
+                var uri = intent.getData()
+                // val name: String? = uri?.getOriginalFileName(Context)
+                // Log.d("seeFile", "$name")
+            } else {
+                Log.d("appDebug", "Denied")
+            }
+        }
+}
 
+// https://stackoverflow.com/questions/73461963/onvaluechange-of-textfield-is-not-triggered-when-selecting-an-option-from-expose
+@Composable
+fun PlantExposedSelectSample() {
+    val options = listOf("Option 1", "Option 2", "Option 3", "Option 4")
+    val (optionSelected, setOptionSelected) = remember {
+        mutableStateOf("")
+    }
+    PlantExposedSelect(
+        options = options,
+        optionSelected = optionSelected,
+        label = "Label",
+        onOptionSelected = {
+            Log.e("eventValue", it)
+            setOptionSelected(it)
+            // viewModel.onEvent(AddEditPlantEvent.EnteredLight(it))
+        },
+        onFocusChange = {
+            // viewModel.onEvent(AddEditPlantEvent.ChangedLightFocus(it))
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun PlantExposedSelect(
+    options: List<String>,
+    optionSelected: String,
+    label: String,
+    onOptionSelected: (String) -> Unit,
+    onFocusChange: (FocusState) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = {
+            expanded = !expanded
+        }
+
+    ) {
+        TextField(
+            readOnly = true,
+            value = optionSelected,
+            onValueChange = onOptionSelected,
+            label = {
+                Text(label)
+            },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    expanded = expanded
+                )
+            },
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged {
+                    onFocusChange(it)
+                },
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                expanded = false
+            }
+        ) {
+            options.forEach { selectOption ->
+                DropdownMenuItem(
+                    onClick = {
+                        onOptionSelected(selectOption)
+                        expanded = false
+                        Log.e("selectEdoption", selectOption)
+                    }
+                ) {
+                    Text(text = selectOption)
+                }
+            }
+        }
+    }
+}
+
+// region Smiley Rating bar
+@Composable
+fun SmileyRatingBarSample() {
+    /*
+    Outrage - https://cdn-icons-png.flaticon.com/512/742/742791.png
+    Sad - https://cdn-icons-png.flaticon.com/512/742/742761.png
+    Sad - https://cdn-icons-png.flaticon.com/512/742/742752.png
+    Sad - https://cdn-icons-png.flaticon.com/512/742/742908.png
+    Angry - https://cdn-icons-png.flaticon.com/512/742/742905.png
+     */
+    val data: List<SmileyData> = listOf(
+        SmileyData("https://cdn-icons-png.flaticon.com/512/742/742905.png", "Terrible"),
+        SmileyData("https://cdn-icons-png.flaticon.com/512/742/742761.png", "Bad"),
+        SmileyData("https://cdn-icons-png.flaticon.com/512/742/742774.png", "Okay"),
+        SmileyData("https://cdn-icons-png.flaticon.com/512/742/742940.png", "Good"),
+        SmileyData("https://cdn-icons-png.flaticon.com/512/742/742869.png", "Awesome"),
+    )
+
+    val (rating, setRating) = remember {
+        mutableStateOf(data.size / 2)
+    }
+
+    SmileyRatingBar(
+        data = data,
+        rating = rating,
+        setRating = setRating,
+    )
+}
+
+data class SmileyData(
+    val url: String,
+    val label: String,
+)
+
+@Composable
+fun SmileyRatingBar(
+    data: List<SmileyData>,
+    rating: Int,
+    setRating: (rating: Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    BoxWithConstraints(
+        modifier = modifier
+            .padding(8.dp)
+            .fillMaxWidth(),
+    ) {
+        val gap = (maxWidth / data.size) - 44.dp
+        val offset: Dp by animateDpAsState(
+            targetValue = (gap / 2) + (gap + 44.dp) * rating,
+            animationSpec = tween(
+                durationMillis = 300,
+                delayMillis = 400,
+                easing = LinearEasing,
+            ),
+        )
+        Divider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    top = 24.dp,
+                    start = 44.dp,
+                    end = 44.dp,
+                ),
+            thickness = 4.dp,
+        )
+        ColorDivider(
+            modifier = Modifier
+                .padding(
+                    top = 24.dp,
+                )
+                .offset(
+                    x = offset,
+                    y = 0.dp,
+                ),
+        )
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+            modifier = modifier
+                .height(80.dp)
+                .fillMaxWidth(),
+        ) {
+            data.mapIndexed { index, smileyData ->
+                Smiley(
+                    smileyData = smileyData,
+                    isSelected = index == rating,
+                    index = index,
+                    count = data.size,
+                    modifier = Modifier.weight(1F),
+                    onClick = {
+                        setRating(index)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ColorDivider(
+    modifier: Modifier = Modifier,
+) {
+    Divider(
+        color = Transparent,
+        thickness = 4.dp,
+        modifier = modifier
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        LightGray,
+                        Color(0xFFFFD93B),
+                        LightGray,
+                    )
+                )
+            )
+            .width(44.dp),
+    )
+}
+
+@Composable
+fun Smiley(
+    smileyData: SmileyData,
+    isSelected: Boolean,
+    index: Int,
+    count: Int,
+    modifier: Modifier = Modifier,
+    animationDurationInMillis: Int = 300,
+    onClick: () -> Unit,
+) {
+    val delayMillis = if (isSelected) {
+        animationDurationInMillis + 300
+    } else {
+        0
+    }
+    val padding: Dp by animateDpAsState(
+        targetValue = if (isSelected) {
+            0.dp
+        } else {
+            4.dp
+        },
+        animationSpec = tween(
+            durationMillis = animationDurationInMillis,
+            delayMillis = delayMillis,
+            easing = LinearEasing,
+        ),
+    )
+    val size: Dp by animateDpAsState(
+        targetValue = if (isSelected) {
+            52.dp
+        } else {
+            44.dp
+        },
+        animationSpec = tween(
+            durationMillis = animationDurationInMillis,
+            delayMillis = delayMillis,
+            easing = LinearEasing,
+        ),
+    )
+    val saturation: Float by animateFloatAsState(
+        targetValue = if (isSelected) {
+            1F
+        } else {
+            0F
+        },
+        animationSpec = tween(
+            durationMillis = animationDurationInMillis,
+            delayMillis = delayMillis,
+            easing = LinearEasing,
+        ),
+    )
+    val matrix = ColorMatrix().apply {
+        setToSaturation(saturation)
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(smileyData.url)
+                .crossfade(true)
+                .build(),
+            contentDescription = "",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .padding(
+                    top = padding,
+                )
+                .size(size)
+                .clip(CircleShape)
+                .clickable {
+                    onClick()
+                },
+            colorFilter = ColorFilter.colorMatrix(matrix)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = smileyData.label,
+            color = if (isSelected) {
+                if (index < (count / 2)) {
+                    Color.Red
+                } else if (index > (count / 2)) {
+                    Color(0xFF275A27)
+                } else {
+                    Color.Black
+                }
+            } else {
+                Color.DarkGray
+            },
+            fontWeight = if (isSelected) {
+                FontWeight.Bold
+            } else {
+                FontWeight.Normal
+            },
+        )
+    }
+}
+// endregion
+
+// https://stackoverflow.com/questions/73443804/how-can-one-composibles-clicks-pass-through-to-a-composible-underneath
+@Composable
+fun PassClicks() {
+    Box {
+        Box(
+            Modifier
+                .size(200.dp)
+                .background(Color.Blue)
+                .clickable { Log.d("Abhi", "I want to receive the clicks from the red box") }
+        ) {}
+        Box(
+            Modifier
+                .size(200.dp)
+                .offset(x = 20.dp)
+                .alpha(0.2F)
+                .background(Color.Red)
+                .clickable(
+                    enabled = false,
+                    onClick = { Log.d("Abhi", "I want my clicks to pass through to the blue box") },
+                )
+        ) {}
+    }
+}
+
+// https://stackoverflow.com/questions/73443718/how-to-assign-value-in-setter-of-mutablestateof-in-kotlin
+@Composable
+fun TextFieldValueSet() {
+    val answer: String? = null
+
+    val textFieldValue by remember {
+        mutableStateOf(TextFieldValue(answer ?: ""))
+    }
+
+    OutlinedTextField(
+        value = textFieldValue,
+        onValueChange = {},
+        modifier = Modifier
+            .fillMaxWidth(),
+    )
+}
 
 // region Swipe Button
 @Composable
