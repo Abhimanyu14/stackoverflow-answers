@@ -58,6 +58,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -121,6 +122,7 @@ import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldColors
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -179,6 +181,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
@@ -196,10 +199,12 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -218,6 +223,7 @@ import androidx.compose.ui.input.pointer.positionChangeConsumed
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -380,14 +386,615 @@ fun Home(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .background(Color(0xFFFFFFFF))
+            .background(Color(0xFFF5F4FA))
             .fillMaxSize(),
     ) {
-        EmojiViewSample()
+        LabelTextField()
     }
 }
 
+
+// Debounce click events
+// Number Picker carousel
+// Emoji Picker
+
 // New question code comes here
+
+// https://stackoverflow.com/questions/73526330/how-to-put-the-label-of-android-compose-textfield-to-the-same-horizontal-axis-as
+@Composable
+fun LabelTextField() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+    ) {
+        Text(
+            text = "Label",
+            modifier = Modifier
+                .padding(
+                    horizontal = 16.dp,
+                ),
+        )
+        TextField(
+            value = "Text",
+            onValueChange = {},
+            modifier = Modifier
+                .weight(1F),
+        )
+    }
+}
+
+@Composable
+fun CodeA() {
+    var temp = remember {
+        1
+    }
+    val refresh = remember {
+        mutableStateOf(100)
+    }
+    Log.e("Test", "temp reset")
+    Log.e("Test", "Load $temp ${refresh.value}")
+    Button(
+        onClick = {
+            temp++
+            refresh.value++
+
+            Log.e("Test", "Save $temp ${refresh.value}")
+        }
+    ) {
+        Text("OK $temp ${refresh.value}")
+    }
+}
+
+@Composable
+fun CustomTabSample() {
+    val (selected, setSelected) = remember {
+        mutableStateOf(0)
+    }
+
+    CustomTab(
+        items = listOf("MUSIC", "PODCAST"),
+        selectedItemIndex = selected,
+        onClick = setSelected,
+    )
+}
+
+@Composable
+fun CustomTab(
+    selectedItemIndex: Int,
+    items: List<String>,
+    modifier: Modifier = Modifier,
+    tabWidth: Dp = 100.dp,
+    onClick: (index: Int) -> Unit,
+) {
+    val indicatorOffset: Dp by animateDpAsState(
+        targetValue = tabWidth * selectedItemIndex,
+        animationSpec = tween(easing = LinearEasing),
+    )
+
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(Color.White)
+            .height(intrinsicSize = IntrinsicSize.Min),
+    ) {
+        MyTabIndicator(
+            indicatorWidth = tabWidth,
+            indicatorOffset = indicatorOffset,
+            indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+        )
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.clip(CircleShape),
+        ) {
+            items.mapIndexed { index, text ->
+                val isSelected = index == selectedItemIndex
+                MyTabItem(
+                    isSelected = isSelected,
+                    onClick = {
+                        onClick(index)
+                    },
+                    tabWidth = tabWidth,
+                    text = text,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MyTabItem(
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    tabWidth: Dp,
+    text: String,
+) {
+    val tabTextColor: Color by animateColorAsState(
+        targetValue = if (isSelected) {
+            White
+        } else {
+            Black
+        },
+        animationSpec = tween(easing = LinearEasing),
+    )
+    Text(
+        modifier = Modifier
+            .clip(CircleShape)
+            .clickable {
+                onClick()
+            }
+            .width(tabWidth)
+            .padding(
+                vertical = 8.dp,
+                horizontal = 12.dp,
+            ),
+        text = text,
+        color = tabTextColor,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+private fun MyTabIndicator(
+    indicatorWidth: Dp,
+    indicatorOffset: Dp,
+    indicatorColor: Color,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(
+                width = indicatorWidth,
+            )
+            .offset(
+                x = indicatorOffset,
+            )
+            .clip(
+                shape = CircleShape,
+            )
+            .background(
+                color = indicatorColor,
+            ),
+    )
+}
+
+@Composable
+fun MyTabRowSample() {
+    val (selected, setSelected) = remember {
+        mutableStateOf(0)
+    }
+    MyTabRow(
+        items = listOf("MUSIC", "PODCAST"),
+        selectedItemIndex = selected,
+        onClick = setSelected,
+    )
+}
+
+@Composable
+fun MyTabRow(
+    selectedItemIndex: Int,
+    items: List<String>,
+    modifier: Modifier = Modifier,
+    onClick: (index: Int) -> Unit,
+) {
+    val density = LocalDensity.current
+    val tabWidths = remember {
+        mutableStateListOf<Dp>()
+    }
+    val indicatorWidth: Dp by animateDpAsState(
+        targetValue = tabWidths.getOrElse(selectedItemIndex) { 32.dp },
+        animationSpec = tween(easing = LinearEasing),
+    )
+    val indicatorOffset: Dp by animateDpAsState(
+        targetValue = tabWidths.take(selectedItemIndex).fold(0.dp) { accumulator, result ->
+            accumulator + result
+        },
+        animationSpec = tween(easing = LinearEasing),
+    )
+
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(Color.White)
+            .height(intrinsicSize = IntrinsicSize.Min),
+    ) {
+        MyTabIndicator(
+            indicatorWidth = indicatorWidth,
+            indicatorOffset = indicatorOffset,
+            indicatorColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+        )
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.clip(CircleShape),
+        ) {
+            items.mapIndexed { index, text ->
+                val isSelected = index == selectedItemIndex
+                val tabTextColor: Color by animateColorAsState(
+                    targetValue = if (isSelected) {
+                        Color.White
+                    } else {
+                        Color.Black
+                    },
+                    animationSpec = tween(easing = LinearEasing),
+                )
+                Text(
+                    modifier = Modifier
+                        .onGloballyPositioned {
+                            tabWidths.add(index, density.run { it.size.width.toDp() })
+                        }
+                        .clip(CircleShape)
+                        .clickable {
+                            onClick(index)
+                        }
+                        .padding(
+                            vertical = 8.dp,
+                            horizontal = 12.dp,
+                        ),
+                    text = text,
+                    color = tabTextColor,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SimpleCustomTextFieldDemo() {
+    val (text, setText) = remember { mutableStateOf("") }
+    SimpleCustomTextField(
+        text = text,
+        setText = setText,
+        label = {
+            Text(
+                text = "Label",
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+    )
+}
+
+@Composable
+fun SimpleCustomTextField(
+    text: String,
+    setText: (text: String) -> Unit,
+    modifier: Modifier = Modifier,
+    label: @Composable (() -> Unit)? = null,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    colors: TextFieldColors = TextFieldDefaults.outlinedTextFieldColors(),
+    shape: Shape = RoundedCornerShape(12.dp),
+) {
+    val color: State<Color> = colors.indicatorColor(
+        enabled = true,
+        isError = false,
+        interactionSource = interactionSource,
+    )
+
+    Box(
+        contentAlignment = Alignment.BottomStart,
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(White),
+    ) {
+        OutlinedTextField(
+            value = text,
+            onValueChange = setText,
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = Transparent,
+                disabledBorderColor = Transparent,
+                errorBorderColor = Transparent,
+                unfocusedBorderColor = Transparent,
+            ),
+            label = label,
+            interactionSource = interactionSource,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .border(
+                    width = 1.dp,
+                    color = color.value,
+                    shape = shape,
+                ),
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CustomTextField(
+    modifier: Modifier = Modifier,
+    label: String = "Label",
+    enabled: Boolean = true,
+    singleLine: Boolean = true,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    isError: Boolean = false,
+    colors: TextFieldColors = TextFieldDefaults.outlinedTextFieldColors(),
+    shape: Shape = RoundedCornerShape(12.dp),
+) {
+    val (text, setText) = remember { mutableStateOf("") }
+    val color: State<Color> = colors.indicatorColor(
+        enabled = enabled,
+        isError = isError,
+        interactionSource = interactionSource,
+    )
+
+    Box(
+        contentAlignment = Alignment.BottomStart,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .clip(shape)
+            .background(White),
+    ) {
+        OutlinedTextField(
+            value = text,
+            onValueChange = setText,
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = Transparent,
+                disabledBorderColor = Transparent,
+                errorBorderColor = Transparent,
+                unfocusedBorderColor = Transparent,
+            ),
+            label = {
+                Text(
+                    text = label,
+                )
+            },
+            interactionSource = interactionSource,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .border(
+                    width = 1.dp,
+                    color = color.value,
+                    shape = shape,
+                ),
+        )
+
+//        BasicTextField(
+//            value = text,
+//            onValueChange = setText,
+//            interactionSource = interactionSource,
+//            textStyle = TextStyle.Default,
+//            enabled = enabled,
+//            singleLine = singleLine,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .clip(shape),
+//        ) {
+//            TextFieldDefaults.OutlinedTextFieldDecorationBox(
+//                value = text,
+//                innerTextField = it,
+//                enabled = enabled,
+//                visualTransformation = VisualTransformation.None,
+//                interactionSource = interactionSource,
+//                contentPadding = TextFieldDefaults.textFieldWithoutLabelPadding(
+//                    start = 24.dp,
+//                    end = 24.dp,
+//                    top = 8.dp,
+//                    bottom = 16.dp,
+//                ),
+//                singleLine = singleLine,
+//                label = {
+//                    Text(
+//                        text = label,
+//                    )
+//                },
+//                colors = colors,
+//                border = {
+//                    TextFieldDefaults.BorderBox(
+//                        enabled = enabled,
+//                        isError = isError,
+//                        interactionSource = interactionSource,
+//                        colors = colors,
+//                        shape = shape,
+//                    )
+//                }
+//            )
+//        }
+    }
+}
+
+@Composable
+fun MyTabSample() {
+    MyCustomRow(
+        items = listOf("Option 1 with long", "Option 2 with", "Option 3"),
+    )
+}
+
+@Composable
+fun MyCustomRow(
+    modifier: Modifier = Modifier,
+    items: List<String>,
+) {
+    val childrenWidths = remember {
+        mutableStateListOf<Int>()
+    }
+    Box(
+        modifier = modifier
+            .background(Color.LightGray)
+            .height(IntrinsicSize.Min),
+    ) {
+        // To add more box here
+        Box(
+            modifier = Modifier
+                .widthIn(
+                    min = 64.dp,
+                )
+                .fillMaxHeight()
+                .width(childrenWidths.getOrNull(0)?.dp ?: 64.dp)
+                .background(
+                    color = DarkGray,
+                ),
+        )
+        Row(
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            items.mapIndexed { index, text ->
+                Text(
+                    modifier = Modifier
+                        .widthIn(min = 64.dp)
+                        .padding(
+                            vertical = 8.dp,
+                            horizontal = 12.dp,
+                        )
+                        .onGloballyPositioned {
+                            childrenWidths.add(index, it.size.width)
+                        },
+                    text = text,
+                    color = Black,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BlendModeSample() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFEEFAFD)),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        BlendBox(
+            modifier = Modifier,
+        )
+    }
+}
+
+@Composable
+fun BlendBox(
+    modifier: Modifier = Modifier,
+) {
+    Canvas(
+        modifier = modifier
+            .size(
+                width = 200.dp,
+                height = 200.dp,
+            ),
+    ) {
+        drawRoundRect(
+            color = Color(0xFF0075D9),
+            topLeft = Offset(
+                40.dp.toPx(),
+                40.dp.toPx(),
+            ),
+            size = Size(
+                width = 80.dp.toPx(),
+                height = 80.dp.toPx(),
+            ),
+            cornerRadius = CornerRadius(
+                x = 16.dp.toPx(),
+                y = 16.dp.toPx(),
+            ),
+            // blendMode = BlendMode.Clear,
+        )
+        drawRoundRect(
+            color = Color(0xFF4CAF50),
+            topLeft = Offset(
+                80.dp.toPx(),
+                80.dp.toPx(),
+            ),
+            size = Size(
+                width = 80.dp.toPx(),
+                height = 80.dp.toPx(),
+            ),
+            cornerRadius = CornerRadius(
+                x = 16.dp.toPx(),
+                y = 16.dp.toPx(),
+            ),
+            blendMode = BlendMode.Src,
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/73510220/android-jetpack-fit-image-as-custom-style-in-card
+@Composable
+fun TestScreen1() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(20.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item {
+                LazyRow(
+                    Modifier.height(160.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    item {
+                        PromotionItem1(
+                            imagePainter = painterResource(id = R.drawable.statue_of_liberty),
+                            title = "AMERICA",
+                            header = "USA",
+                            backgroundColor = Color.White
+                        )
+                    }
+                    item {
+                        PromotionItem1(
+                            imagePainter = painterResource(id = R.drawable.statue_of_liberty),
+                            title = "AMERICA",
+                            header = "USA",
+                            backgroundColor = Color.White
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PromotionItem1(
+    title: String = "",
+    header: String = "",
+    backgroundColor: Color = Color.Transparent,
+    imagePainter: Painter,
+) {
+    Card(
+        Modifier.width(300.dp),
+        shape = RoundedCornerShape(8.dp),
+        backgroundColor = backgroundColor,
+        elevation = 0.dp
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.End,
+        ) {
+//            Image(
+//                painter = imagePainter, contentDescription = "",
+//                modifier = Modifier
+//                    .fillMaxHeight()
+//                    .weight(1f),
+//                alignment = Alignment.CenterEnd,
+//                contentScale = ContentScale.Crop
+//            )
+            Column(
+                Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = title,
+                    fontSize = 14.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(text = header, fontSize = 14.sp, color = Color.Black)
+            }
+        }
+    }
+}
 
 // Emoji View
 @Composable
@@ -416,10 +1023,6 @@ fun EmojiView(
     )
 }
 
-// Debounce click events
-
-// Number Picker carousel
-// Emoji Picker
 
 // https://stackoverflow.com/questions/73462737/classifier-context-does-not-have-a-companion-object-and-thus-must-be-initiali
 @Composable
