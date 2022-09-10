@@ -91,6 +91,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.BottomSheetScaffold
@@ -389,7 +391,7 @@ fun Home(
             .background(Color(0xFFF5F4FA))
             .fillMaxSize(),
     ) {
-        LabelTextField()
+        CustomTextFieldVisual()
     }
 }
 
@@ -399,6 +401,68 @@ fun Home(
 // Emoji Picker
 
 // New question code comes here
+
+// https://stackoverflow.com/questions/73599809/how-can-i-control-the-direction-of-animatedvisibility-in-compose
+@Composable
+fun SlideAnimationDirection() {
+    var isVisible by remember {
+        mutableStateOf(false)
+    }
+    Column(
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = slideInVertically(
+                initialOffsetY = {
+                    it / 2
+                },
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = {
+                    it / 2
+                },
+            ),
+        ) {
+            Text(
+                text = "Sample",
+                modifier = Modifier.padding(128.dp),
+            )
+        }
+        androidx.compose.material3.Button(
+            onClick = {
+                isVisible = !isVisible
+            },
+        ) {
+            Text("Swap")
+        }
+    }
+}
+
+// https://stackoverflow.com/questions/73550593/jetpack-compose-cursor-in-the-end-of-a-textfield
+@Composable
+fun AutCursorEndTextField() {
+    var text: TextFieldValue by remember {
+        mutableStateOf(
+            value = TextFieldValue(),
+        )
+    }
+
+    OutlinedTextField(
+        value = text,
+        onValueChange = { value: TextFieldValue ->
+            text = TextFieldValue(
+                text = value.text,
+                selection = TextRange(
+                    index = value.text.length - 1,
+                ),
+            )
+        },
+        modifier = Modifier.padding(16.dp),
+    )
+}
 
 // https://stackoverflow.com/questions/73526330/how-to-put-the-label-of-android-compose-textfield-to-the-same-horizontal-axis-as
 @Composable
@@ -2634,8 +2698,14 @@ fun CustomTextFieldVisual() {
                     200.dp,
                 ),
         ) {
+            val customTextSelectionColors = TextSelectionColors(
+                handleColor = Transparent,
+                backgroundColor = Transparent
+            )
+
             CompositionLocalProvider(
-                LocalTextToolbar provides EmptyTextToolbar
+                LocalTextToolbar provides EmptyTextToolbar,
+                LocalTextSelectionColors provides customTextSelectionColors,
             ) {
                 BasicTextField(
                     value = text,
@@ -2657,10 +2727,10 @@ fun CustomTextFieldVisual() {
                         keyboardType = KeyboardType.NumberPassword,
                         imeAction = ImeAction.Done,
                     ),
-                    textStyle = TextStyle(
-                        color = Transparent,
-                    ),
-                    readOnly = true,
+//                    textStyle = TextStyle(
+//                        color = Transparent,
+//                    ),
+                    // readOnly = true,
                     cursorBrush = SolidColor(Transparent),
                     modifier = Modifier
                         .clip(CircleShape)
