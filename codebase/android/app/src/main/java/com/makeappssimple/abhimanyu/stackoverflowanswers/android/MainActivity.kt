@@ -52,6 +52,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -137,6 +138,8 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ArrowDownward
+import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Done
@@ -165,13 +168,16 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusDirection
@@ -206,6 +212,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -224,6 +231,7 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.input.pointer.positionChangeConsumed
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
@@ -283,7 +291,10 @@ import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -296,7 +307,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import java.util.Locale
-
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -360,7 +370,6 @@ fun MyAppView() {
     }
 }
 
-
 @Composable
 fun Settings(
     navHostController: NavController,
@@ -391,10 +400,441 @@ fun Home(
             .background(Color(0xFFF5F4FA))
             .fillMaxSize(),
     ) {
-        CustomTextFieldVisual()
+        LazyListPaddingSample()
     }
 }
 
+@Composable
+fun LazyListPaddingSample() {
+    LazyListContentPaddingSample()
+}
+
+@Composable
+fun LazyListItemPaddingSample() {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        items(16) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .padding(
+                        horizontal = 8.dp,
+                        vertical = 4.dp,
+                    )
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFC99DD3)),
+            )
+        }
+    }
+}
+
+@Composable
+fun LazyListColumnPaddingSample() {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+    ) {
+        items(16) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .padding(
+                        horizontal = 8.dp,
+                        vertical = 4.dp,
+                    )
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFC99DD3)),
+            )
+        }
+    }
+}
+
+@Composable
+fun LazyListContentPaddingSample() {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            top = 16.dp,
+            bottom = 16.dp,
+        ),
+    ) {
+        items(16) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .padding(
+                        horizontal = 8.dp,
+                        vertical = 4.dp,
+                    )
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFC99DD3)),
+            )
+        }
+    }
+}
+
+@Composable
+fun ExpandableListSample() {
+    ExpandableList(
+        expandableListItems = (1..5).map {
+            ExpandableListItemData(
+                title = "Title ${it + 1}",
+                subTitle = "Sub Title ${it + 1}",
+            )
+        },
+    )
+}
+
+@Composable
+fun ExpandableList(
+    expandableListItems: List<ExpandableListItemData>,
+) {
+    val expandedItemsIndices: SnapshotStateList<Boolean> = remember {
+        mutableStateListOf(
+            elements = List(5) { false }.toTypedArray(),
+        )
+    }
+
+    LazyColumn {
+        itemsIndexed(expandableListItems) { index: Int, item: ExpandableListItemData ->
+            ExpandableListItem(
+                expanded = expandedItemsIndices[index],
+                title = item.title,
+                subTitle = item.subTitle,
+                onClick = {
+                    expandedItemsIndices[index] = !expandedItemsIndices[index]
+                },
+            )
+        }
+    }
+}
+
+data class ExpandableListItemData(
+    val title: String,
+    val subTitle: String,
+)
+
+@Composable
+fun ExpandableListItem(
+    expanded: Boolean,
+    title: String,
+    subTitle: String,
+    onClick: () -> Unit,
+) {
+    val chevronDegrees: Float by animateFloatAsState(
+        targetValue = if (expanded) {
+            90F
+        } else {
+            0F
+        },
+        animationSpec = tween(
+            durationMillis = 3000,
+        ),
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 3000,
+                ),
+            ),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth(),
+        ) {
+            IconButton(
+                onClick = {
+                    onClick()
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .rotate(
+                            degrees = chevronDegrees,
+                        ),
+                )
+            }
+            Text(
+                text = title,
+                modifier = Modifier
+                    .padding(16.dp),
+            )
+        }
+        if (expanded) {
+            Text(
+                text = subTitle,
+                modifier = Modifier
+                    .padding(
+                        start = 64.dp,
+                        end = 16.dp,
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
+fun RotatedText() {
+    val density = LocalDensity.current
+    val interactionSource: MutableInteractionSource = remember {
+        MutableInteractionSource()
+    }
+    var isPressed by remember {
+        mutableStateOf(false)
+    }
+    val currentIsPressed by rememberUpdatedState(isPressed)
+    var degree by remember {
+        mutableStateOf(0F)
+    }
+
+    LaunchedEffect(interactionSource) {
+        interactionSource.interactions.collect { interaction ->
+            when (interaction) {
+                is PressInteraction.Press -> {
+                    isPressed = true
+                }
+
+                is PressInteraction.Release -> {
+                    isPressed = false
+                }
+            }
+        }
+    }
+    LaunchedEffect(
+        key1 = currentIsPressed,
+    ) {
+        while (currentIsPressed) {
+            degree = (degree + 1) % 360
+            delay(30)
+        }
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Blue),
+                )
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Red),
+                )
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Blue),
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Black),
+                )
+                BoxWithConstraints {
+                    Box(
+                        modifier = Modifier
+                            .height(60.dp)
+                            .width(120.dp)
+                            .customRotate(
+                                width = density.run { maxWidth.toPx() },
+                                height = density.run { maxHeight.toPx() },
+                                degrees = degree,
+                            )
+                            .drawWithContent {
+
+                            }
+                            // .vertical()
+                            // .rotate(degree)
+                            .background(Cyan),
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Black),
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Blue),
+                )
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Red),
+                )
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(Blue),
+                )
+            }
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+        ) {
+            IconButton(
+                onClick = {
+                    degree = (degree - 1) % 360
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ArrowDownward,
+                    contentDescription = null,
+                )
+            }
+            Text(
+                text = "Degree: $degree",
+                modifier = Modifier.padding(24.dp),
+            )
+            IconButton(
+                interactionSource = interactionSource,
+                onClick = {
+                    degree = (degree + 1) % 360
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.ArrowUpward,
+                    contentDescription = null,
+                )
+            }
+        }
+    }
+}
+
+fun Modifier.customRotate(
+    width: Float,
+    height: Float,
+    degrees: Float,
+): Modifier {
+    val radian = Math.toRadians(degrees.toDouble())
+//    val layout: Modifier = layout { measurable, constraints ->
+//        val width =
+//            (constraints.minHeight * abs(sin(radian)) + constraints.minWidth * abs(cos(radian))).roundToInt()
+//        val height =
+//            (constraints.minWidth * abs(sin(radian)) + constraints.minHeight * abs(cos(radian))).roundToInt()
+//        constraints.copy(
+//            minWidth = width,
+//            maxWidth = width,
+//            minHeight = height,
+//            maxHeight = height,
+//        )
+//        val placeable = measurable.measure(constraints)
+//
+//
+//        Log.e("Rotate", "width: $width")
+//        Log.e("Rotate", "height: $height")
+//        Log.e("Rotate", "x: 0")
+//        Log.e("Rotate", "y: ${(placeable.width * abs(sin(radian))).roundToInt()}")
+//        layout(width, height) {
+//            placeable.place(
+//                x = 0, // -(placeable.width / 2 - placeable.height / 2),
+//                y = (placeable.width * abs(sin(radian))).roundToInt(), // -(placeable.height / 2 - placeable.width / 2)
+//            )
+//        }
+//    }
+
+    val newWidth = (height * abs(sin(radian)) + width * abs(cos(radian))).roundToInt()
+    val newHeight = (width * abs(sin(radian)) + height * abs(cos(radian))).roundToInt()
+
+    return this
+        .rotate(degrees)
+        .graphicsLayer {
+            rotationZ = degrees
+            // scaleX = newWidth / width
+            // scaleY = newHeight / height
+        }
+}
+
+fun Modifier.vertical() =
+    layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints)
+        layout(placeable.width, placeable.height) {
+            placeable.place(
+                x = 0, //-(placeable.width / 2 - placeable.height / 2),
+                y = 0, // -(placeable.height / 2 - placeable.width / 2)
+            )
+        }
+    }
+
+@Composable
+fun TextFieldWithoutCursor() {
+    val (text, setText) = remember {
+        mutableStateOf("")
+    }
+
+    val customTextSelectionColors = TextSelectionColors(
+        handleColor = Transparent,
+        backgroundColor = Transparent,
+    )
+    CompositionLocalProvider(
+        LocalTextToolbar provides EmptyTextToolbar,
+        LocalTextSelectionColors provides customTextSelectionColors,
+    ) {
+        BasicTextField(
+            value = text,
+            onValueChange = {
+                if (text.isEmpty()) {
+                    setText(it)
+                }
+            },
+            singleLine = true,
+            cursorBrush = SolidColor(Transparent),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Done,
+            ),
+            textStyle = TextStyle(
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            ),
+            modifier = Modifier
+                .requiredWidth(80.dp)
+                .padding(16.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color(0xFFEBE0F0))
+                .padding(12.dp),
+        )
+    }
+}
 
 // Debounce click events
 // Number Picker carousel
@@ -1911,6 +2351,7 @@ fun ScratchCard(
                     }
                     true
                 }
+
                 else -> false
             }
         }
@@ -2002,6 +2443,7 @@ fun DrawingBoard() {
                             scratchedPath.moveTo(it.x, it.y)
                             true
                         }
+
                         MotionEvent.ACTION_MOVE -> {
                             pointerPosition = Offset(
                                 x = it.x,
@@ -2019,6 +2461,7 @@ fun DrawingBoard() {
                             )
                             true
                         }
+
                         else -> false
                     }
                 },
