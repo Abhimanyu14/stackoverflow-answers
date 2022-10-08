@@ -178,6 +178,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusDirection
@@ -210,6 +211,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
@@ -266,6 +268,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
@@ -400,8 +403,99 @@ fun Home(
             .background(Color(0xFFF5F4FA))
             .fillMaxSize(),
     ) {
-        LazyListPaddingSample()
+        ImageBackground()
     }
+}
+
+@Composable
+fun ImageBackground() {
+    Image(
+        painter = painterResource(
+            id = R.drawable.ic_launcher_foreground,
+        ),
+        contentDescription = null,
+        modifier = Modifier
+            .height(160.dp)
+            .width(160.dp)
+            .paint(
+                painter = painterResource(R.drawable.ic_launcher_background),
+                contentScale = ContentScale.FillWidth
+            )
+            .padding(4.dp),
+    )
+}
+
+@Composable
+fun AutoSpacedTextSample() {
+    val (text, setText) = remember {
+        mutableStateOf("")
+    }
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        AutoSpacedText(
+            text = text,
+            modifier = Modifier
+                .background(LightGray)
+                .padding(16.dp),
+        )
+        TextField(
+            value = text,
+            onValueChange = setText,
+            modifier = Modifier
+                .padding(16.dp),
+        )
+    }
+}
+
+inline operator fun TextUnit.plus(other: TextUnit): TextUnit {
+    return (this.value + other.value).sp
+}
+
+inline operator fun TextUnit.minus(other: TextUnit): TextUnit {
+    return (this.value - other.value).sp
+}
+
+@Composable
+fun AutoSpacedText(
+    text: String,
+    modifier: Modifier = Modifier,
+    minimumLetterSpacing: Int = 2,
+    maximumLetterSpacing: Int = 200,
+    letterSpacingStep: Int = 2,
+) {
+    Log.e("Recomposed", "AutoSpacedText: $text")
+    var letterSpacingCalculated by remember(text) {
+        mutableStateOf(false)
+    }
+    var letterSpacing: TextUnit by remember(text) {
+        mutableStateOf(minimumLetterSpacing.sp)
+    }
+    Text(
+        text = text,
+        modifier = modifier
+            .requiredWidth(260.dp)
+            .drawWithContent {
+                if (letterSpacingCalculated) {
+                    drawContent()
+                }
+            },
+        letterSpacing = letterSpacing,
+        textAlign = TextAlign.Center,
+        overflow = TextOverflow.Visible,
+        maxLines = 1,
+        onTextLayout = {
+            if (!letterSpacingCalculated) {
+                if (letterSpacing.value.roundToInt() < maximumLetterSpacing && !it.hasVisualOverflow) {
+                    letterSpacing += letterSpacingStep.sp
+                } else {
+                    letterSpacingCalculated = true
+                    letterSpacing -= letterSpacingStep.sp
+                }
+            }
+        },
+    )
 }
 
 @Composable
