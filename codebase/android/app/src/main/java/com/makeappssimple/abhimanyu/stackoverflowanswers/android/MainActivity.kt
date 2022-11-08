@@ -151,6 +151,7 @@ import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material.swipeable
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -205,13 +206,14 @@ import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
@@ -276,6 +278,7 @@ import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import androidx.core.graphics.PathParser
 import androidx.core.text.isDigitsOnly
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LiveData
@@ -403,7 +406,173 @@ fun Home(
             .background(Color(0xFFF5F4FA))
             .fillMaxSize(),
     ) {
-        ImageBackground()
+        Demo()
+    }
+}
+
+// https://stackoverflow.com/questions/74081535/compose-negative-offset-is-not-affecting-its-actual-size-measurement
+@Composable
+fun OffsetInColumn() {
+    Column {
+        Box() {
+            Box(
+                modifier = Modifier
+                    .background(Red)
+                    .size(200.dp),
+            )
+            Box(
+                modifier = Modifier
+                    // .offset(y = -100.dp)
+                    .background(Cyan)
+                    .size(200.dp),
+            )
+        }
+        Box(
+            modifier = Modifier
+                .background(Blue)
+                .size(200.dp),
+        )
+    }
+}
+
+fun customAndroidPath(): android.graphics.Path? {
+    val pathString =
+        "M 60,60 L 60,0 L 50,10 L 60,0 L 70,10"
+    return PathParser.createPathFromPathData(pathString)
+}
+
+// https://stackoverflow.com/questions/74001641/how-to-draw-custom-shaped-surface-in-jetpack-compose
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomShapeSurface() {
+    ElevatedCard(
+        modifier = Modifier
+            .clip(FolderShape())
+            .background(Gray)
+            .fillMaxWidth()
+            .height(260.dp),
+    ) {
+        Text("Heading")
+        Text("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.")
+    }
+}
+
+class FolderShape() : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density,
+    ): Outline {
+        val path: android.graphics.Path = customAndroidPath() ?: android.graphics.Path()
+
+        return Outline.Generic(
+            path = path.asComposePath()
+        )
+    }
+}
+
+// https://stackoverflow.com/questions/74000870/compose-fillmaxsize-not-working-after-using-modifier-verticalscroll
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ColumnScrollCheck() {
+    val scrollState = rememberScrollState()
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text(
+            "Editor picks".uppercase(),
+            modifier = Modifier.padding(8.dp),
+        )
+
+        ElevatedCard(
+            modifier = Modifier
+                .clickable {}
+                .fillMaxSize()
+        ) {
+            Column {
+                AsyncImage(
+                    model = "https://images.pexels.com/photos/20787/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        Text(
+            "Editor picks".uppercase(),
+            modifier = Modifier.padding(8.dp),
+        )
+
+        ElevatedCard(
+            modifier = Modifier
+                .clickable {}
+                .fillMaxSize()
+        ) {
+            Column {
+                AsyncImage(
+                    model = "https://images.pexels.com/photos/20787/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        Text(
+            "Editor picks".uppercase(),
+            modifier = Modifier.padding(8.dp),
+        )
+
+        ElevatedCard(
+            modifier = Modifier
+                .clickable {}
+                .fillMaxSize()
+        ) {
+            Column {
+                AsyncImage(
+                    model = "https://images.pexels.com/photos/20787/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        Text(
+            "Editor picks".uppercase(),
+            modifier = Modifier.padding(8.dp),
+        )
+
+        ElevatedCard(
+            modifier = Modifier
+                .clickable {}
+                .fillMaxSize()
+        ) {
+            Column {
+                AsyncImage(
+                    model = "https://images.pexels.com/photos/20787/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        Text(
+            "Editor picks".uppercase(),
+            modifier = Modifier.padding(8.dp),
+        )
+
+        ElevatedCard(
+            modifier = Modifier
+                .clickable {}
+                .fillMaxSize()
+        ) {
+            Column {
+                AsyncImage(
+                    model = "https://images.pexels.com/photos/20787/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 }
 
@@ -7550,3 +7719,235 @@ fun TextInput() {
         )
     }
 }
+
+@Composable
+fun Demo() {
+    // Counter()
+    // CounterWithState()
+    // CounterWithStateWithRemember()
+
+    // CounterWithStateWithRememberDelegation()
+    // CounterWithStateWithRememberSyntacticSugar()
+    // CounterWithStateWithRememberSaveable()
+
+    // CounterStateHoisting()
+
+    DoubleCounter()
+}
+
+// Counter
+@Composable
+fun Counter() {
+    // DONT DO THIS
+    var count = 0
+    Log.e("Test", "Outside Column: $count")
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("$count")
+        Button(
+            onClick = {
+                count++
+                Log.e("Test", "After increment: $count")
+            },
+        ) {
+            Text("Increment")
+        }
+    }
+}
+
+@Composable
+fun CounterWithState() {
+    // DONT DO THIS
+    val count = mutableStateOf(0)
+    Log.e("Test", "Outside Column: ${count.value}")
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("${count.value}")
+        Button(
+            onClick = {
+                count.value++
+                Log.e("Test", "After increment: ${count.value}")
+            },
+        ) {
+            Text("Increment")
+        }
+    }
+}
+
+// Remember
+@Composable
+fun CounterWithStateWithRemember() {
+    val count = remember {
+        mutableStateOf(0)
+    }
+    Log.e("Test", "Outside Column: ${count.value}")
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("${count.value}")
+        Button(
+            onClick = {
+                count.value++
+                Log.e("Test", "After increment: ${count.value}")
+            },
+        ) {
+            Text("Increment")
+        }
+    }
+}
+
+@Composable
+fun CounterWithStateWithRememberDelegation() {
+    var count by remember {
+        mutableStateOf(0)
+    }
+    Log.e("Test", "Outside Column: $count")
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("$count")
+        Button(
+            onClick = {
+                count++
+                Log.e("Test", "After increment: $count")
+            },
+        ) {
+            Text("Increment")
+        }
+    }
+}
+
+@Composable
+fun CounterWithStateWithRememberSyntacticSugar() {
+    val (count, setCount) = remember {
+        mutableStateOf(0)
+    }
+    Log.e("Test", "Outside Column: $count")
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("$count")
+        Button(
+            onClick = {
+                setCount(count + 1)
+                Log.e("Test", "After increment: $count")
+            },
+        ) {
+            Text("Increment")
+        }
+    }
+}
+
+@Composable
+fun CounterWithStateWithRememberSaveable() {
+    val (count, setCount) = rememberSaveable {
+        mutableStateOf(0)
+    }
+    Log.e("Test", "Outside Column: $count")
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("$count")
+        Button(
+            onClick = {
+                setCount(count + 1)
+                Log.e("Test", "After increment: $count")
+            },
+        ) {
+            Text("Increment")
+        }
+    }
+}
+
+// State Hoisting and stateless
+// from CounterWithStateWithRemember
+@Composable
+fun CounterStateHoisting() {
+    var count by remember {
+        mutableStateOf(0)
+    }
+    Log.e("Test", "Outside Column: $count")
+
+    CounterUI(
+        count = count,
+        setCount = {
+            count = it
+        },
+    )
+}
+
+@Composable
+fun CounterUI(
+    count: Int, // state
+    setCount: (updatedCount: Int) -> Unit, // event
+) {
+    Log.e("Test", "Outside CounterUI: $count")
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("$count")
+        Button(
+            onClick = {
+                setCount(count + 1)
+                Log.e("Test", "After increment: $count")
+            },
+        ) {
+            Text("Increment")
+        }
+    }
+}
+
+// syntactic sugar issue
+@Composable
+fun DoubleCounter() {
+    val (count1, setCount) = remember {
+        mutableStateOf(0)
+    }
+    var count2 by remember {
+        mutableStateOf(0)
+    }
+    Log.e("Test", "Outside Column: count 1: $count1")
+    Log.e("Test", "Outside Column: count 2: $count2")
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("$count1")
+        Button(
+            onClick = {
+                setCount(count1 + 1)
+                Log.e("Test", "After increment: $count1")
+                setCount(count1 + 1)
+                Log.e("Test", "After increment: $count1")
+            },
+        ) {
+            Text("Increment")
+        }
+        Text("$count2")
+        Button(
+            onClick = {
+                count2++
+                Log.e("Test", "After increment: $count2")
+                count2++
+                Log.e("Test", "After increment: $count2")
+            },
+        ) {
+            Text("Increment")
+        }
+    }
+}
+
+// Restoring state
+// https://developer.android.com/jetpack/compose/state#restore-ui-state
+
+// State holders
+
+
