@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.makeappssimple.abhimanyu.stackoverflowanswers.android"
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -33,14 +33,13 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
-        useIR = true
     }
     buildFeatures {
+        dataBinding true
         compose true
     }
     composeOptions {
         kotlinCompilerExtensionVersion jetpackComposeCompilerVersion
-        // kotlinCompilerVersion "1.5.10"
     }
     packagingOptions {
         resources {
@@ -89,8 +88,12 @@ dependencies {
     // Jetpack compose
     implementation "androidx.compose.ui:ui:$rootProject.jetpackComposeVersion"
     implementation "androidx.compose.ui:ui-util:$rootProject.jetpackComposeVersion"
-    implementation "androidx.appcompat:appcompat:1.4.1"
+    implementation "androidx.appcompat:appcompat:1.6.1"
     implementation "androidx.constraintlayout:constraintlayout:2.1.4"
+    implementation "androidx.databinding:databinding-common:7.4.1"
+    implementation platform('androidx.compose:compose-bom:2022.10.00')
+    implementation 'androidx.compose.ui:ui-graphics'
+    androidTestImplementation platform('androidx.compose:compose-bom:2022.10.00')
 
     // Jetpack compose tooling support (Previews, etc.)
     debugImplementation "androidx.compose.ui:ui-tooling:$rootProject.jetpackComposeVersion"
@@ -107,7 +110,7 @@ dependencies {
 
     // Jetpack compose material Design
     implementation "androidx.compose.material:material:$rootProject.jetpackComposeVersion"
-    implementation "androidx.compose.material3:material3:1.0.0-alpha12"
+    implementation "androidx.compose.material3:material3:1.1.0-alpha07"
 
     // Jetpack compose material design icons
     implementation "androidx.compose.material:material-icons-core:$rootProject.jetpackComposeVersion"

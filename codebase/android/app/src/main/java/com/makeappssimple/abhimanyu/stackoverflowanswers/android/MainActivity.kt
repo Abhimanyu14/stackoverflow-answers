@@ -143,20 +143,17 @@ import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material.swipeable
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -295,6 +292,7 @@ import androidx.navigation.navDeepLink
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.bottomsheet.BottomSheetActivity
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
@@ -323,6 +321,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             DefaultAppView()
         }
+        startActivity(Intent(this, BottomSheetActivity::class.java))
     }
 
     //    override fun dispatchTouchEvent(motionEvent: MotionEvent?): Boolean {
@@ -3213,7 +3212,7 @@ fun BottomSheetSelectionDemo() {
     }
     val toggleModalBottomSheetState = {
         coroutineScope.launch {
-            if (!modalBottomSheetState.isAnimationRunning) {
+            if (modalBottomSheetState.currentValue == modalBottomSheetState.targetValue) {
                 if (modalBottomSheetState.isVisible) {
                     modalBottomSheetState.hide()
                 } else {
@@ -3491,6 +3490,7 @@ fun Dot(
 
 
 // https://stackoverflow.com/questions/73280574/how-to-set-a-outlinedtextfield-occupy-the-remaining-space-jetpack-compose
+/*
 @Composable
 fun SmallAppBar() {
     androidx.compose.material3.MaterialTheme {
@@ -3530,6 +3530,7 @@ fun SmallAppBar() {
         )
     }
 }
+*/
 
 // https://stackoverflow.com/questions/73276689/vertical-scroll-affecting-the-modifier-weight-in-jetpack-compose
 @Composable
@@ -4240,6 +4241,7 @@ fun AutoWidthRow() {
 }
 
 // https://stackoverflow.com/questions/72545412/on-swipe-down-jetpack-compose-modalbottomsheet-skip-halfexpanded-state
+/*
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ModalBottomSheetSingleSwipe() {
@@ -4290,6 +4292,7 @@ fun ModalBottomSheetSingleSwipe() {
         }
     }
 }
+*/
 
 // https://stackoverflow.com/questions/72546187/kotlin-jetpack-compose-center-text-in-column-inside-a-lazycolum
 @Composable
@@ -5007,6 +5010,7 @@ fun DropdownExample() {
 }
 
 // https://stackoverflow.com/questions/71957948/how-to-center-the-middle-child-in-a-compose-row-and-make-it-responsive
+/*
 @Composable
 fun MiddleItemRowWrapper() {
     Column(
@@ -5038,7 +5042,7 @@ fun MiddleItemRow(
         },
         title = {
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { *//*TODO*//* },
                 modifier = Modifier
                     .background(Cyan)
                     .padding(
@@ -5061,7 +5065,7 @@ fun MiddleItemRow(
         }
     )
 
-    /*Row(
+    *//*Row(
         verticalAlignment = Alignment.CenterVertically,
         // horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
@@ -5085,7 +5089,7 @@ fun MiddleItemRow(
                 ),
         )
         Button(
-            onClick = { *//*TODO*//* },
+            onClick = { *//**//*TODO*//**//* },
             modifier = Modifier
                 .background(Cyan)
                 //                .weight(
@@ -5111,8 +5115,9 @@ fun MiddleItemRow(
                     all = 16.dp,
                 ),
         )
-    }*/
+    }*//*
 }
+*/
 
 // https://stackoverflow.com/questions/71927791/android-jetpack-compose-how-to-make-text-utilize-complete-row-space-and-break-t
 @Composable
@@ -5483,7 +5488,7 @@ fun BottomSheetDismissAction() {
             TextButton(
                 onClick = {
                     coroutineScope.launch {
-                        if (!modalBottomSheetState.isAnimationRunning) {
+                        if (modalBottomSheetState.currentValue == modalBottomSheetState.targetValue) {
                             if (modalBottomSheetState.isVisible) {
                                 modalBottomSheetState.hide()
                             } else {
@@ -7726,13 +7731,13 @@ fun Demo() {
     // CounterWithState()
     // CounterWithStateWithRemember()
 
-    // CounterWithStateWithRememberDelegation()
+    CounterWithStateWithRememberDelegation()
     // CounterWithStateWithRememberSyntacticSugar()
     // CounterWithStateWithRememberSaveable()
 
     // CounterStateHoisting()
 
-    DoubleCounter()
+    // DoubleCounter()
 }
 
 // Counter
@@ -7802,24 +7807,41 @@ fun CounterWithStateWithRemember() {
 }
 
 @Composable
-fun CounterWithStateWithRememberDelegation() {
-    var count by remember {
-        mutableStateOf(0)
-    }
-    Log.e("Test", "Outside Column: $count")
+fun CounterWithStateWithRememberDelegation(
+    viewModel: CounterWithStateWithRememberDelegationViewModel = hiltViewModel(),
+) {
+//    val count by viewModel.count
+//    var count by remember {
+//        mutableStateOf(0)
+//    }
+    Log.e("Test", "Recomposed")
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("$count")
+//        Text("${viewModel.count}")
         Button(
             onClick = {
-                count++
-                Log.e("Test", "After increment: $count")
+                viewModel.increment()
             },
         ) {
-            Text("Increment")
+            Text("Increment to ${viewModel.count}")
         }
+    }
+}
+
+
+class CounterWithStateWithRememberDelegationViewModel : ViewModel() {
+    var count by mutableStateOf(0)
+        private set
+
+
+//    private val _count = mutableStateOf(0)
+//    val count: State<Int> = _count
+
+    fun increment() {
+        count++
+//        _count.value++
     }
 }
 
@@ -7949,5 +7971,3 @@ fun DoubleCounter() {
 // https://developer.android.com/jetpack/compose/state#restore-ui-state
 
 // State holders
-
-

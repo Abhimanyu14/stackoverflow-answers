@@ -12,6 +12,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StackOverflowAnswers">
         <activity
+            android:name=".bottomsheet.BottomSheetActivity"
+            android:exported="false"
+            android:label="@string/title_activity_bottom_sheet" />
+        <activity
+            android:name=".ViewActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.StackOverflowAnswers.NoActionBar">
@@ -20,7 +27,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
