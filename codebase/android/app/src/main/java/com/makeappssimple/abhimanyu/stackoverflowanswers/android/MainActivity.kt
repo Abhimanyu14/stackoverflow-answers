@@ -292,7 +292,12 @@ import androidx.navigation.navDeepLink
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.bottomsheet.BottomSheetActivity
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.clickable.ClickableSample
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.focusrequester.FocusRequesterDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.fontpadding.FontPadding
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazycolomnprogress.LazyColumnProgress
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.row.RowAlignmentDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.topshadow.TopShadowDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
@@ -321,7 +326,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             DefaultAppView()
         }
-        startActivity(Intent(this, BottomSheetActivity::class.java))
+        // startActivity(Intent(this, BottomSheetActivity::class.java))
     }
 
     //    override fun dispatchTouchEvent(motionEvent: MotionEvent?): Boolean {
@@ -405,7 +410,7 @@ fun Home(
             .background(Color(0xFFF5F4FA))
             .fillMaxSize(),
     ) {
-        Demo()
+        TestApp()
     }
 }
 
@@ -7971,3 +7976,125 @@ fun DoubleCounter() {
 // https://developer.android.com/jetpack/compose/state#restore-ui-state
 
 // State holders
+
+@OptIn(ExperimentalMaterialApi::class)
+fun openModalBottomSheetState(
+    coroutineScope: CoroutineScope,
+    modalBottomSheetState: ModalBottomSheetState,
+) {
+    coroutineScope.launch {
+        modalBottomSheetState.show()
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun BottomSheetFillCheck() {
+    val coroutineScope = rememberCoroutineScope()
+    val modalBottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        skipHalfExpanded = true,
+    )
+    var count by remember {
+        mutableStateOf(0)
+    }
+    val colors = listOf(
+        Color.Red, Color.Green, Color.DarkGray, Color.Black, Color.Blue, Color.Cyan, Color.Gray,
+        Color.Magenta, Color.LightGray, Color.Yellow, Color.Red, Color.Green,
+    )
+
+    ModalBottomSheetLayout(
+        sheetState = modalBottomSheetState,
+        sheetShape = RoundedCornerShape(
+            topStart = 16.dp,
+            topEnd = 16.dp,
+        ),
+        sheetContent = {
+            LazyColumn(Modifier.fillMaxWidth()) {
+                items((0 until count).toList()) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .background(colors[it]),
+                    ) {}
+                }
+            }
+        },
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Button(
+                onClick = {
+                    count = 2
+                    openModalBottomSheetState(
+                        coroutineScope = coroutineScope,
+                        modalBottomSheetState = modalBottomSheetState,
+                    )
+                },
+            ) {
+                Text("Open Sheet with 2 items")
+            }
+            Button(
+                onClick = {
+                    count = 6
+                    openModalBottomSheetState(
+                        coroutineScope = coroutineScope,
+                        modalBottomSheetState = modalBottomSheetState,
+                    )
+                },
+            ) {
+                Text("Open Sheet with 6 items")
+            }
+            Button(
+                onClick = {
+                    count = 12
+                    openModalBottomSheetState(
+                        coroutineScope = coroutineScope,
+                        modalBottomSheetState = modalBottomSheetState,
+                    )
+                },
+            ) {
+                Text("Open Sheet with 12 items")
+            }
+        }
+    }
+}
+
+@Composable
+fun TextFieldSample() {
+    var value1 by remember {
+        mutableStateOf(TextFieldValue(""))
+    }
+    var value2 by remember {
+        mutableStateOf(TextFieldValue(""))
+    }
+    Column {
+        androidx.compose.material3.OutlinedTextField(
+            value = value1,
+            onValueChange = {
+                value1 = it
+                // onValueChange(it.text)
+            },
+            singleLine = true,
+            modifier = Modifier,
+        )
+
+        androidx.compose.material3.OutlinedTextField(
+            value = value2,
+            onValueChange = {
+                value2 = it
+                // onValueChange(it.text)
+            },
+            singleLine = true,
+            modifier = Modifier,
+        )
+    }
+}
+
+@Composable
+fun TestApp() {
+    StickyBottomRow()
+}

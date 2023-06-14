@@ -37,13 +37,14 @@ fun BottomSheetSample() {
     val coroutineScope: CoroutineScope = rememberCoroutineScope()
     val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
+        skipHalfExpanded = true,
     )
 
     ModalBottomSheetLayout(
         sheetState = modalBottomSheetState,
         sheetContent = {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier, //.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
