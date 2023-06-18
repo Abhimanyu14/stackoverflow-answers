@@ -95,13 +95,13 @@ buildscript {
         recyclerViewVersion = "1.2.1"
 
         // Jetpack compose
-        jetpackComposeVersion = "1.4.0-beta02"
+        jetpackComposeVersion = "1.5.0-beta02"
 
         // Jetpack compose compiler
         jetpackComposeCompilerVersion = "1.4.3"
 
         // Jetpack compose material 3
-        jetpackComposeMaterial3Version = "1.0.0-alpha08"
+        jetpackComposeMaterial3Version = "1.0.0"
 
         // Jetpack compose material design adapter
         jetpackComposeMaterialDesignAdapterVersion = "1.2.1"

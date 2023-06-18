@@ -277,6 +277,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.core.graphics.PathParser
 import androidx.core.text.isDigitsOnly
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -292,12 +293,7 @@ import androidx.navigation.navDeepLink
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.clickable.ClickableSample
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.focusrequester.FocusRequesterDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.fontpadding.FontPadding
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazycolomnprogress.LazyColumnProgress
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.row.RowAlignmentDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.topshadow.TopShadowDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.textfield.HelperTextDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
@@ -323,6 +319,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(InternalCoroutinesApi::class, ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             DefaultAppView()
         }
@@ -8096,5 +8093,5 @@ fun TextFieldSample() {
 
 @Composable
 fun TestApp() {
-    StickyBottomRow()
+    HelperTextDemo()
 }
