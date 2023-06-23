@@ -293,6 +293,10 @@ import androidx.navigation.navDeepLink
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.button.OutlineButtonAlphaDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.button.OutlinedButtonDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazycolumn.DynamicStickyHeaderDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazycolumn.LazyColumnFitDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.textfield.HelperTextDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -313,6 +317,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import java.util.Locale
 
+const val backgroundColor = 0xFFF5F4FA
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -404,7 +409,7 @@ fun Home(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .background(Color(0xFFF5F4FA))
+            .background(Color(backgroundColor))
             .fillMaxSize(),
     ) {
         TestApp()
@@ -8093,5 +8098,5 @@ fun TextFieldSample() {
 
 @Composable
 fun TestApp() {
-    HelperTextDemo()
+    DynamicStickyHeaderDemo()
 }

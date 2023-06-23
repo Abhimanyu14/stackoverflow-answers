@@ -103,6 +103,9 @@ proguard/
 # Last icon added with the Android Studio Wizard
 **/.idea/assetWizardSettings.xml
 
+# Last icon added with the Android Studio Wizard
+**/.idea/deploymentTargetDropDown.xml
+
 # Uncomment if dictionaries are not required in vcs
 # **/.idea/dictionaries
 
