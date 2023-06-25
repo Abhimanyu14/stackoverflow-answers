@@ -5,7 +5,4 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun DynamicStickyHeaderDemo() {
-    LazyColumn() {
-        stickyHeader {  }
-    }
 }

@@ -39,7 +39,6 @@ fun StickyBottomRow() {
     val modalBottomSheetState: ModalBottomSheetState =
         rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
 
-    modalBottomSheetState.currentValue
     ModalBottomSheetLayout(
         sheetState = modalBottomSheetState,
         sheetContent = {
