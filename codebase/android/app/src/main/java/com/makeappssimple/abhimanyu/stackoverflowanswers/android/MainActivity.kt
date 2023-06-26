@@ -294,6 +294,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.column.RandomElementsDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.fade.FadingEdgeExamples
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazycolumn.LazyGridUsingLazyColumnDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.modifier.CustomModifierDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.text.VerticalScrollDemo
@@ -8097,5 +8098,5 @@ fun TextFieldSample() {
 
 @Composable
 fun TestApp() {
-    VerticalScrollDemo()
+    FadingEdgeExamples()
 }

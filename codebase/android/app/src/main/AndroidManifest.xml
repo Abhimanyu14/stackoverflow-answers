@@ -12,6 +12,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StackOverflowAnswers">
         <activity
+            android:name=".receivedata.ReceiveDataActivity"
+            android:exported="true"
+            android:label="@string/title_activity_receive_data"
+            android:theme="@style/Theme.StackOverflowAnswers">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".bottomsheet.BottomSheetActivity"
             android:exported="false"
             android:label="@string/title_activity_bottom_sheet" />
