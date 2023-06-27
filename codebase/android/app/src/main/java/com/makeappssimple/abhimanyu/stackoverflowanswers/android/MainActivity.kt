@@ -293,11 +293,7 @@ import androidx.navigation.navDeepLink
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.column.RandomElementsDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.fade.FadingEdgeExamples
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazycolumn.LazyGridUsingLazyColumnDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.modifier.CustomModifierDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.text.VerticalScrollDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.text.ScrollingTextWithMaxLinesDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
@@ -8098,5 +8094,5 @@ fun TextFieldSample() {
 
 @Composable
 fun TestApp() {
-    FadingEdgeExamples()
+    ScrollingTextWithMaxLinesDemo()
 }
