@@ -69,12 +69,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -293,7 +295,11 @@ import androidx.navigation.navDeepLink
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.animation.RippleDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.animation.ScaleImageDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazygrid.SmallGridDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.text.ScrollingTextWithMaxLinesDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.text.TextScrollingDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
@@ -406,6 +412,8 @@ fun Home(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .background(Color(backgroundColor))
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .fillMaxSize(),
     ) {
         TestApp()
@@ -8094,5 +8102,5 @@ fun TextFieldSample() {
 
 @Composable
 fun TestApp() {
-    ScrollingTextWithMaxLinesDemo()
+    TextScrollingDemo()
 }
