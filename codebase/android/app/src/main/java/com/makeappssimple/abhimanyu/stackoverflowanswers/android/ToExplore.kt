@@ -1,6 +1,16 @@
 package com.makeappssimple.abhimanyu.stackoverflowanswers.android
 
 /**
+ * https://stackoverflow.com/questions/76579786/draw-content-without-redrawing-the-background-in-jetpack-compose
+ * Infinite background color change
+ */
+
+/**
+ * https://stackoverflow.com/questions/76580312/compose-modalbottomsheetstate-animateto-method-is-internal
+ * Animate bottom sheet on button click
+ */
+
+/**
  * https://stackoverflow.com/questions/76544936/is-the-number-picker-available-in-jetpack-compose-android-native-not-a-3rd-part
  * Number Picker
  */
@@ -31,11 +41,11 @@ package com.makeappssimple.abhimanyu.stackoverflowanswers.android
  */
 
 /**
- * https://stackoverflow.com/questions/76571975/android-compose-how-to-draw-a-transparent-rect-to-make-a-separation-in-a-box
- * Slash Box UI
+ * https://stackoverflow.com/questions/76577809/how-to-observe-systembars-appearance-in-compose
+ * System app bar visibility observable
  */
 
 /**
- * https://stackoverflow.com/questions/76577809/how-to-observe-systembars-appearance-in-compose
- * System app bar visibility observable
+ * https://stackoverflow.com/questions/76571975/android-compose-how-to-draw-a-transparent-rect-to-make-a-separation-in-a-box
+ * Slash Box UI - Done
  */

@@ -295,11 +295,9 @@ import androidx.navigation.navDeepLink
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.animation.RippleDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.animation.ScaleImageDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazygrid.SmallGridDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.text.ScrollingTextWithMaxLinesDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.text.TextScrollingDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.drawwith.DrawWithContentDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.dropdownmenu.DropDownMenuDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.topappbar.CollapsingToolbarDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
@@ -319,7 +317,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import java.util.Locale
 
-const val backgroundColor = 0xFFF5F4FA
+const val appBackgroundColor = 0xFFF5F4FA
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -411,7 +409,7 @@ fun Home(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .background(Color(backgroundColor))
+            .background(Color(appBackgroundColor))
             .statusBarsPadding()
             .navigationBarsPadding()
             .fillMaxSize(),
@@ -8102,5 +8100,5 @@ fun TextFieldSample() {
 
 @Composable
 fun TestApp() {
-    TextScrollingDemo()
+    DropDownMenuDemo()
 }

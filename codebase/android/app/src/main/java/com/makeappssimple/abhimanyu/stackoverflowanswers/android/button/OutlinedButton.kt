@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.backgroundColor
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.appBackgroundColor
 
 /**
  * https://stackoverflow.com/questions/76504580/how-to-add-label-or-icon-to-any-border-in-jetpack-compose
@@ -37,7 +37,7 @@ fun OutlinedButtonDemo() {
                         color = Color.Red,
                         shape = RoundedCornerShape(8.dp),
                     )
-                    .background(Color(backgroundColor)),
+                    .background(Color(appBackgroundColor)),
             ) {
                 Text(
                     "Button",
@@ -60,7 +60,7 @@ fun OutlinedButtonDemo() {
                     fontSize = 12.sp,
                 ),
                 modifier = Modifier
-                    .background(Color(backgroundColor))
+                    .background(Color(appBackgroundColor))
                     .padding(
                         vertical = 2.dp,
                         horizontal = 4.dp,
