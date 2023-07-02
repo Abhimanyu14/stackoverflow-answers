@@ -295,8 +295,13 @@ import androidx.navigation.navDeepLink
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.material.button.MaterialButton
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.card.CardDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.drawwith.DrawWithContentDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.dropdownmenu.DropDownMenuDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.launchedeffect.KeyDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazygrid.SmallGridDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.list.ListDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.text.DotBetweenTextDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.topappbar.CollapsingToolbarDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -8100,5 +8105,5 @@ fun TextFieldSample() {
 
 @Composable
 fun TestApp() {
-    DropDownMenuDemo()
+    CardDemo()
 }
