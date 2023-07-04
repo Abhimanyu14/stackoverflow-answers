@@ -298,6 +298,7 @@ import com.google.android.material.button.MaterialButton
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.card.CardDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.drawwith.DrawWithContentDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.dropdownmenu.DropDownMenuDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.icon.IconDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.launchedeffect.KeyDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.lazygrid.SmallGridDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.list.ListDemo
@@ -8105,5 +8106,5 @@ fun TextFieldSample() {
 
 @Composable
 fun TestApp() {
-    CardDemo()
+    IconDemo()
 }
