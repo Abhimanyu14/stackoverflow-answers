@@ -7,8 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.pulltorefresh.icons.generateHeartRateIcon
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.pulltorefresh.icons.generateTrendIcon
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.pulltorefresh.icons.generateHeartIcon
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,7 +25,7 @@ fun MyPullToRefreshDemo() {
 
     MyPullToRefreshLayout(
         iconPath = {
-            generateHeartRateIcon(
+            generateHeartIcon(
                 sizeFactor = it,
             )
         },
