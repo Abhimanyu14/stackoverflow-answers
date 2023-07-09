@@ -141,8 +141,7 @@ fun MyPullToRefreshLayout(
                 refreshProgress = refreshProgress.value,
                 widthFraction = widthFraction,
                 state = indicatorState,
-
-                ),
+            ),
         )
         content()
     }
