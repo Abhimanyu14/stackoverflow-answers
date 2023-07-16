@@ -24,11 +24,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.list.ListSelectionDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.pulltorefresh.MyPullToRefreshDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.tab.PrimaryTabRowDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.tab.TabRowDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.InternalCoroutinesApi
+import org.intellij.lang.annotations.JdkConstants.ListSelectionMode
 
 const val appBackgroundColor = 0xFFF5F4FA
 
@@ -134,5 +137,5 @@ fun Home(
 
 @Composable
 fun TestApp() {
-    TabRowDemo()
+    ListSelectionDemo()
 }
