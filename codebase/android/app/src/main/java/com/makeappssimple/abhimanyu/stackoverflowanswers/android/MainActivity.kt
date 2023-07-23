@@ -24,6 +24,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.column.ColumnDividerDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.flowrow.FlowRowDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.list.ListSelectionDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.pulltorefresh.MyPullToRefreshDemo
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.tab.PrimaryTabRowDemo
@@ -137,5 +139,5 @@ fun Home(
 
 @Composable
 fun TestApp() {
-    ListSelectionDemo()
+    ColumnDividerDemo()
 }
