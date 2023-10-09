@@ -24,8 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.column.MaxWidthConstraintDemo
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.row.MultipleTextDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.textfield.DisplayNumberTextField
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -134,5 +133,5 @@ fun Home(
 
 @Composable
 fun TestApp() {
-    MaxWidthConstraintDemo()
+    DisplayNumberTextField()
 }
