@@ -1,5 +1,6 @@
 package com.makeappssimple.abhimanyu.stackoverflowanswers.android
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,7 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
-import com.makeappssimple.abhimanyu.stackoverflowanswers.android.textfield.DisplayNumberTextField
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.CustomViewActivity
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -41,7 +42,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             DefaultAppView()
         }
-        // startActivity(Intent(this, BottomSheetActivity::class.java))
+        val intent = Intent(this, CustomViewActivity::class.java)
+        startActivity(intent)
     }
 
     //    override fun dispatchTouchEvent(motionEvent: MotionEvent?): Boolean {
@@ -133,5 +135,5 @@ fun Home(
 
 @Composable
 fun TestApp() {
-    DisplayNumberTextField()
+    // OnSizeChangedSample()
 }
