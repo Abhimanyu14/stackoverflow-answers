@@ -1,13 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".customview.CustomViewActivity">
 
-    <com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.PianoView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.MyCircularProgressView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="16dp" />
+
+    <!--    <com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.LinearProgressView-->
+    <!--        android:id="@+id/linear_progress_view"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_margin="16dp"-->
+    <!--        app:progress="0"-->
+    <!--        app:progressHeight="20" />-->
+
+    <!--    <Button-->
+    <!--        android:id="@+id/restart_btn"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_gravity="center_horizontal"-->
+    <!--        android:text="Restart" />-->
+
+    <!--    <com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.LotteryWheel-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="match_parent" />-->
+
+    <!--    <com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.PianoView-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="match_parent" />-->
 
     <!--<com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.CircleView
         android:layout_width="100dp"
@@ -18,9 +44,9 @@
         app:layout_constraintTop_toTopOf="parent" />
         -->
 
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/text"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <!--    <androidx.appcompat.widget.AppCompatTextView-->
+    <!--        android:id="@+id/text"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content" />-->
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

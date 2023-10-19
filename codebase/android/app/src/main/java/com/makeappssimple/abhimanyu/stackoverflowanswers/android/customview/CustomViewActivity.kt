@@ -1,16 +1,15 @@
 package com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview
 
-import android.content.pm.ActivityInfo
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.util.Log
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.R
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
@@ -19,14 +18,48 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.math.min
 
+/**
+ * Sun
+ * https://stackoverflow.com/questions/73581518/draw-circle-at-the-end-of-arc-android-canvas
+ *
+ * Gauge
+ * https://stackoverflow.com/questions/74010297/create-a-needle-gaugeview-from-ios-swift-to-androidkotlin
+ *
+ * Custom range slider
+ * https://stackoverflow.com/questions/76039011/android-custom-rangeslider-view
+ *
+ * Custom Seekbar
+ * https://stackoverflow.com/questions/76967237/custom-view-seekbar-in-android
+ */
 class CustomViewActivity : AppCompatActivity() {
+    private var job: Job? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_custom_view)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        // requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         // networkCall()
+        // setUpLinearProgressView()
     }
+
+//    private fun setUpLinearProgressView() {
+//        val restartButton = findViewById<Button>(R.id.restart_btn)
+//        val linearProgressView = findViewById<LinearProgressView>(R.id.linear_progress_view)
+//        linearProgressView.progressHeight = 30
+//        restartButton.setOnClickListener {
+//            linearProgressView.progress = 0F
+//            job?.cancel()
+//            job = lifecycleScope.launch(Dispatchers.Main) {
+//                while (linearProgressView.progress < 1F) {
+//                    linearProgressView.progress = min(1F, linearProgressView.progress + 0.01F)
+//                    Log.e("Abhi", "${linearProgressView.progress}")
+//                    delay(20)
+//                }
+//            }
+//        }
+//    }
 
     private fun networkCall() {
         val tv = findViewById<TextView>(R.id.text)
@@ -73,25 +106,3 @@ suspend fun makeNetworkRequest(urlString: String): String? = withContext(Dispatc
     }
 }
 
-class Frag : Fragment(R.layout.activity_custom_view) {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-    }
-
-    override fun onViewStateRestored(savedInstanceState: Bundle?) {
-        super.onViewStateRestored(savedInstanceState)
-    }
-}

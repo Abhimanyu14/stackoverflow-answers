@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="LinearProgressView">
+        <attr name="progressHeight" format="integer" />
+        <attr name="progress" format="float" />
+    </declare-styleable>
+
+    <declare-styleable name="MyCircularProgressView">
+        <attr name="size" format="integer" />
+        <attr name="backgroundStartAngle" format="float" />
+        <attr name="backgroundSweepAngle" format="float" />
+    </declare-styleable>
+</resources>
