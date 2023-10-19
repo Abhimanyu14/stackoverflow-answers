@@ -26,6 +26,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.CustomViewActivity
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.recomposition.TextDemo
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.remember.RememberCounterSample
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.remember.RememberSample
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -135,5 +138,5 @@ fun Home(
 
 @Composable
 fun TestApp() {
-    // OnSizeChangedSample()
+    RememberSample()
 }

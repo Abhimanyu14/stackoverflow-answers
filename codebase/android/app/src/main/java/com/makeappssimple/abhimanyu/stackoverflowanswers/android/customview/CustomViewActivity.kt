@@ -1,5 +1,6 @@
 package com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,11 @@ class CustomViewActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_custom_view)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        // networkCall()
+    }
+
+    private fun networkCall() {
         val tv = findViewById<TextView>(R.id.text)
         // Call the network request method within a coroutine
         lifecycleScope.launch(Dispatchers.Main) {
@@ -67,7 +73,7 @@ suspend fun makeNetworkRequest(urlString: String): String? = withContext(Dispatc
     }
 }
 
-class Frag: Fragment(R.layout.activity_custom_view) {
+class Frag : Fragment(R.layout.activity_custom_view) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -13,12 +13,13 @@
         android:theme="@style/Theme.StackOverflowAnswers">
         <activity
             android:name=".customview.CustomViewActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.StackOverflowAnswers.NoActionBar" />
         <activity
             android:name=".receivedata.ReceiveDataActivity"
             android:exported="true"
             android:label="@string/title_activity_receive_data"
-            android:theme="@style/Theme.StackOverflowAnswers">
+            android:theme="@style/Theme.StackOverflowAnswers.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
