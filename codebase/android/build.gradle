@@ -95,7 +95,7 @@ buildscript {
         recyclerViewVersion = "1.2.1"
 
         // Jetpack compose
-        jetpackComposeVersion = "1.6.0-alpha01"
+        jetpackComposeVersion = "1.6.0-alpha07"
 
         // Jetpack compose compiler
         jetpackComposeCompilerVersion = "1.4.3"
