@@ -11,16 +11,16 @@ import android.view.MotionEvent
 import android.view.View
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.R
 
-val blackKeyNames = listOf("C#", "D#", "F#", "G#", "A#")
-val blackKeyFiles = listOf(
+private val blackKeyNames = listOf("C#", "D#", "F#", "G#", "A#")
+private val blackKeyFiles = listOf(
     R.raw.c0,
     R.raw.d0,
     R.raw.f0,
     R.raw.g0,
     R.raw.a0,
 )
-val whiteKeyNames = listOf("C", "D", "E", "F", "G", "A", "B", "C")
-val whiteKeyFiles = listOf(
+private val whiteKeyNames = listOf("C", "D", "E", "F", "G", "A", "B", "C")
+private val whiteKeyFiles = listOf(
     R.raw.c,
     R.raw.d,
     R.raw.e,
@@ -31,7 +31,7 @@ val whiteKeyFiles = listOf(
     R.raw.c,
 )
 
-data class KeyData(
+private data class KeyData(
     var isPressed: Boolean = false,
     val isWhite: Boolean,
     val name: String,
