@@ -29,6 +29,7 @@ import com.makeappssimple.abhimanyu.stackoverflowanswers.android.button.ButtonEn
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.button.LeftAlignSample
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.custom.PianoSample
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.CustomViewActivity
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.daterange.DatePickerSample
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.textfield.PasswordValidationSample
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -139,5 +140,5 @@ fun Home(
 
 @Composable
 fun TestApp() {
-    ButtonEndsAlignmentSample()
+    DatePickerSample()
 }
