@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.button.ButtonEndsAlignmentSample
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.button.LeftAlignSample
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.custom.BoxOffsetSample
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.custom.PianoSample
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.customview.CustomViewActivity
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.daterange.DatePickerSample
@@ -140,5 +141,5 @@ fun Home(
 
 @Composable
 fun TestApp() {
-    DatePickerSample()
+    BoxOffsetSample()
 }
