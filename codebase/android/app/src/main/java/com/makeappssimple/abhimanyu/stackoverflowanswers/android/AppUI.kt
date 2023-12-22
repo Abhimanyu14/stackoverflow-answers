@@ -43,5 +43,5 @@ fun MyAppUI() {
 
 @Composable
 fun TestComposable() {
-    Ime()
+    AutoFocus()
 }

@@ -22,8 +22,8 @@ fun AutoFocus() {
     LaunchedEffect(
         key1 = Unit,
     ) {
-        delay(1000)
-        focusRequester.requestFocus()
+        // delay(1000)
+        // focusRequester.requestFocus()
     }
 
     TextField(
