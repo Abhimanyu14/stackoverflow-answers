@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.bugreport.focus.AutoFocus
+import com.makeappssimple.abhimanyu.stackoverflowanswers.android.bugreport.focus.Ime
 import com.makeappssimple.abhimanyu.stackoverflowanswers.android.ui.theme.StackOverflowAnswersTheme
 
 @Composable
@@ -42,5 +43,5 @@ fun MyAppUI() {
 
 @Composable
 fun TestComposable() {
-    AutoFocus()
+    Ime()
 }
